@@ -1,18 +1,31 @@
-cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
-authors:
-- family-names: "Brizzio"
-  given-names: "Matías"
-  orcid: "https://orcid.org/0009-0000-9427-9345"
-- family-names: "Cordy"
-  given-names: "Maxime"
-- family-names: "Papadakis"
-  given-names: "Mike"
-- family-names: "Sánchez"
-  given-names: "César"
-- family-names: "Aguirre"
-  given-names: "Nazareno"
-- family-names: "Degiovanni"
-  given-names: "Renzo"
-title: "Automated Repair of Unrealisable LTL Specifications Guided by Model Counting"
-doi: 10.1145/3583131.3590454
+- authors:
+  - family: Brizzio
+    given: Matías
+  - family: Cordy
+    given: Maxime
+  - family: Papadakis
+    given: Mike
+  - family: Sánchez
+    given: César
+  - family: Aguirre
+    given: Nazareno
+  - family: Degiovanni
+    given: Renzo
+  title: Automated Repair of Unrealisable LTL Specifications Guided by Model Counting
+  year: 2023
+  DOI: 10.1145/3583131.3590454
+  ISBN: '9798400701191'
+  publisher: Association for Computing Machinery
+  publication_type: conference-paper
+  source: Proceedings of the Genetic and Evolutionary Computation Conference
+  page_first: 1499
+  page_last: 1507
+  number_of_pages: 9
+  event:
+    name: GECCO '23
+    location: Lisbon, Portugal
+  keywords:
+  - search-based software engineering
+  - LTL-synthesis
+  - model counting
+  url: https://doi.org/10.1145/3583131.3590454
