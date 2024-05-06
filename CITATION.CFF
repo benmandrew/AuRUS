@@ -1,0 +1,66 @@
+# This CITATION.cff file was generated with cffinit.
+
+cff-version: 1.2.0
+title: >-
+  Automated Repair of Unrealisable LTL Specification Guided
+  by Model Counting
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Matías
+    family-names: Brizzio
+    affiliation: IMDEA Software Institute
+    orcid: 'https://orcid.org/0009-0000-9427-9345'
+  - given-names: Maxime
+    family-names: Cordy
+    affiliation: 'SnT, University of Luxembourg'
+  - given-names: Mike
+    family-names: Papadakis
+    affiliation: 'SnT, University of Luxembourg'
+  - given-names: César
+    family-names: Sánchez
+    affiliation: IMDEA Software Institute
+  - given-names: Nazareno
+    family-names: Aguirre
+    affiliation: >-
+      Universidad Nacional de Río Cuarto, Río Cuarto,
+      Argentina
+  - given-names: Renzo
+    family-names: Degiovanni
+    affiliation: 'SnT, University of Luxembourg'
+identifiers:
+  - type: doi
+    value: 10.1145/3583131.3590454
+  - type: url
+    value: 'https://doi.org/10.1145/3583131.3590454'
+repository-code: 'https://github.com/MatiasBrizzio/AuRUS'
+repository: 'https://github.com/MatiasBrizzio/EstiMate'
+abstract: >-
+  The reactive synthesis problem consists of automatically
+  producing correct-by-construction operational models of
+  systems from high-level formal specifications of their
+  behaviours. However, specifications are often
+  unrealisable, meaning that no system can be synthesised
+  from the specification. To deal with this problem, we
+  present AuRUS, a search-based approach to repair
+  unrealisable Linear-Time Temporal Logic (LTL)
+  specifications. AuRUS aims at generating solutions that
+  are similar to the original specifications by using the
+  notions of syntactic and semantic similarities.
+  Intuitively, the syntactic similarity measures the text
+  similarity between the specifications, while the semantic
+  similarity measures the number of behaviours
+  preserved/removed by the candidate repair. We propose a
+  new heuristic based on model counting to approximate
+  semantic similarity. We empirically assess AuRUS on many
+  unrealisable specifications taken from different
+  benchmarks and show that it can successfully repair all of
+  them. Also, compared to related techniques, AuRUS can
+  produce many unique solutions while showing more
+  scalability.
+keywords:
+  - search-based software engineering
+  - model counting
+  - LTL-synthesis
