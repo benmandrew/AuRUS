@@ -1,4 +1,4 @@
-@inproceedings{10.1145/3583131.3590454,
+@software{10.1145/3583131.3590454,
 author = {Brizzio, Mat\'{\i}as and Cordy, Maxime and Papadakis, Mike and S\'{a}nchez, C\'{e}sar and Aguirre, Nazareno and Degiovanni, Renzo},
 title = {Automated Repair of Unrealisable LTL Specifications Guided by Model Counting},
 year = {2023},
