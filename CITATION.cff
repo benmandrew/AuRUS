@@ -1,16 +1,18 @@
-@software{10.1145/3583131.3590454,
-author = {Brizzio, Mat\'{\i}as and Cordy, Maxime and Papadakis, Mike and S\'{a}nchez, C\'{e}sar and Aguirre, Nazareno and Degiovanni, Renzo},
-title = {Automated Repair of Unrealisable LTL Specifications Guided by Model Counting},
-year = {2023},
-isbn = {9798400701191},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/3583131.3590454},
-doi = {10.1145/3583131.3590454},
-booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference},
-pages = {1499–1507},
-numpages = {9},
-keywords = {LTL-synthesis, model counting, search-based software engineering},
-location = {Lisbon, Portugal},
-series = {GECCO '23}
-}
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Brizzio"
+  given-names: "Mat\'{\i}as"
+  orcid: "https://orcid.org/0009-0000-9427-9345"
+- family-names: "Cordy"
+  given-names: "Maxime"
+- family-names: "Papadakis"
+  given-names: "Mike"
+- family-names: "S\'{a}nchez"
+  given-names: "C\'{e}sar"
+- family-names: "Aguirre"
+  given-names: "Nazareno"
+- family-names: "Degiovanni"
+  given-names: "Renzo"
+title: "Automated Repair of Unrealisable LTL Specifications Guided by Model Counting"
+doi: https://doi.org/10.1145/3583131.3590454
