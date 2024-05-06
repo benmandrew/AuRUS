@@ -2,17 +2,17 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Brizzio"
-  given-names: "Mat\'{\i}as"
+  given-names: "Matías"
   orcid: "https://orcid.org/0009-0000-9427-9345"
 - family-names: "Cordy"
   given-names: "Maxime"
 - family-names: "Papadakis"
   given-names: "Mike"
-- family-names: "S\'{a}nchez"
-  given-names: "C\'{e}sar"
+- family-names: "Sánchez"
+  given-names: "César"
 - family-names: "Aguirre"
   given-names: "Nazareno"
 - family-names: "Degiovanni"
   given-names: "Renzo"
 title: "Automated Repair of Unrealisable LTL Specifications Guided by Model Counting"
-doi: https://doi.org/10.1145/3583131.3590454
+doi: 10.1145/3583131.3590454
