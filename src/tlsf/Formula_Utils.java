@@ -81,14 +81,14 @@ public class Formula_Utils {
     public static Formula replaceSubformula(Formula f0, Formula f1) {
         Random rand = Settings.RANDOM_GENERATOR;
         // select randomly the fub formula of f0 to be replaced
-        Set subformulas_f0 = f0.subformulas(Formula.TemporalOperator.class);
+        Set<Formula.TemporalOperator> subformulas_f0 = f0.subformulas(Formula.TemporalOperator.class);
         if (subformulas_f0.isEmpty())
             return null;
         Formula src = (Formula) subformulas_f0.toArray()[rand.nextInt(subformulas_f0.size())];
 //		System.out.println("Selected source formula "+ src);
 
         // get randomly the sub formula of f1 to be used to replace in f0.
-        Set subformulas_f1 = f1.subformulas(Formula.TemporalOperator.class);
+        Set<Formula.TemporalOperator> subformulas_f1 = f1.subformulas(Formula.TemporalOperator.class);
         if (subformulas_f1.isEmpty())
             return null;
         Formula target = (Formula) subformulas_f1.toArray()[rand.nextInt(subformulas_f1.size())];
@@ -102,14 +102,14 @@ public class Formula_Utils {
     public static Formula combineSubformula(Formula f0, Formula f1) {
         Random rand = Settings.RANDOM_GENERATOR;
         // select randomly the fub formula of f0 to be replaced
-        Set subformulas_f0 = f0.subformulas(Formula.TemporalOperator.class);
+        Set<Formula.TemporalOperator> subformulas_f0 = f0.subformulas(Formula.TemporalOperator.class);
         if (subformulas_f0.isEmpty())
             return null;
         Formula left = (Formula) subformulas_f0.toArray()[rand.nextInt(subformulas_f0.size())];
 //		System.out.println("Selected source formula "+ src);
 
         // get randomly the sub formula of f1 to be used to replace in f0.
-        Set subformulas_f1 = f1.subformulas(Formula.TemporalOperator.class);
+        Set<Formula.TemporalOperator> subformulas_f1 = f1.subformulas(Formula.TemporalOperator.class);
         if (subformulas_f1.isEmpty())
             return null;
         Formula right = (Formula) subformulas_f1.toArray()[rand.nextInt(subformulas_f1.size())];

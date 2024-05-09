@@ -184,7 +184,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
                                 RealizabilitySolverResult rel = RealizabilitySolverResult.UNREALIZABLE;
                                 if (Settings.check_STRONG_SAT) {
                                     // check for strong satisfiability
-                                    PotentiallyRealizabilityChecker strong_sat_solver = new PotentiallyRealizabilityChecker(spec.toFormula());
+                                    PotentiallyRealizabilityChecker strong_sat_solver = new PotentiallyRealizabilityChecker<>(spec.toFormula());
                                     Boolean strong_sat_res = strong_sat_solver.checkPotentiallyRealizability();
                                     if (strong_sat_res != null && strong_sat_res)
                                         rel = RealizabilitySolverResult.REALIZABLE;
@@ -207,15 +207,13 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         chromosome.status = status;
     }
 
-    private BigInteger countModels(LabelledFormula formula) throws IOException, InterruptedException {
+    private BigInteger countModels(LabelledFormula formula) {
         SyntacticSimplifier simp = new SyntacticSimplifier();
         Formula simplified = formula.formula().accept(simp);
         if (simplified == BooleanConstant.FALSE)
             return BigInteger.ZERO;
         LabelledFormula simp_formula = LabelledFormula.of(simplified, formula.variables());
-//		AutomataBasedModelCounting counter = new AutomataBasedModelCounting(simp_formula, Settings.MC_EXHAUSTIVE);
-        EmersonLeiAutomatonBasedModelCounting counter = new EmersonLeiAutomatonBasedModelCounting(simp_formula);
-//		MatrixBigIntegerModelCounting counter = new MatrixBigIntegerModelCounting(simp_formula, false);
+        EmersonLeiAutomatonBasedModelCounting counter = new EmersonLeiAutomatonBasedModelCounting<>(simp_formula);
         return counter.count(Settings.MC_BOUND);
     }
 
@@ -239,7 +237,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         return (0.5d * lost_models_fitness) + (0.5d * won_models_fitness);
     }
 
-    private double compute_lost_models_porcentage(Tlsf original, Tlsf refined) throws IOException, InterruptedException {
+    private double compute_lost_models_porcentage(Tlsf original, Tlsf refined) {
         System.out.print("-");
         if (originalNumOfModels == null || originalNumOfModels.equals(BigInteger.ZERO))
             return 0.0d;
@@ -250,10 +248,6 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         if (refined_formula == BooleanConstant.FALSE)
             return 0.0d;
         Formula lostModels = Conjunction.of(original.toFormula().formula(), refined_formula.not());
-//		if (lostModels == BooleanConstant.TRUE)
-//			return 0.0d;
-//		if (lostModels == BooleanConstant.FALSE)
-//			return 1.0d;
 
         LabelledFormula formula = LabelledFormula.of(lostModels, original.variables());
         BigInteger form_count = countModels(formula);
@@ -269,56 +263,34 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         double value = 1.0d - res.doubleValue();
 //		System.out.print(numOfLostModels + " " + numOfModels + " ");
         if (res.doubleValue() > 1.0d) {
-//			System.out.println("\nBROKEN formula: " + formula);
-//			throw new RuntimeException("lost models major than 1.0: " + refined.toFormula());
             System.out.println("\nWARNING: increase the bound. ");
             return 1.0d;
         }
         return value;
     }
 
-    private double compute_won_models_porcentage(Tlsf original, Tlsf refined) throws IOException, InterruptedException {
+    private double compute_won_models_porcentage(Tlsf original, Tlsf refined) {
         System.out.print("+");
         if (originalNumOfModels == null || originalNumOfModels.equals(BigInteger.ZERO))
             return 0.0d;
-//		if (commonNumOfModels == null || commonNumOfModels == BigDecimal.ZERO) {
-//			return 0.0d;
-//		}
-
-//		if (refined.toFormula().formula() == BooleanConstant.FALSE)
-//			return 1.0d;
 
         BigInteger refinedNumOfModels = countModels(refined.toFormula());
         if (Objects.equals(refinedNumOfModels, BigInteger.ZERO))
             return 0.0d;
 
-//		int numOfVars = original.variables().size();
         Formula original_formula = original.toFormula().formula();
-//		if (original_formula == BooleanConstant.TRUE)
-//			return 1.0d;
-//		if (original_formula == BooleanConstant.FALSE)
-//			return 0.0d;
         Formula wonModels = Conjunction.of(original_formula.not(), refined.toFormula().formula());
 
-//		if (wonModels == BooleanConstant.TRUE)
-//			return 1.0d;
-//		if (wonModels == BooleanConstant.FALSE)
-//			return 0.0d;
         LabelledFormula formula = LabelledFormula.of(wonModels, original.variables());
-//		System.out.println("WON: "+formula);
         //patch to avoid computing again this value;
         BigInteger form_count = countModels(formula);
         if (form_count == null)
             return 0.0d;
         BigDecimal numOfWonModels = new BigDecimal(form_count);
-//		commonNumOfModels = null;
         BigDecimal numOfRefinedModels = new BigDecimal(refinedNumOfModels);
-//        BigDecimal numOfRefinedModels = new BigDecimal(UNIVERSE);
-//        BigDecimal numOfRefinedModels = new BigDecimal(originalNegationNumOfModels);
         BigDecimal res = numOfWonModels.divide(numOfRefinedModels, 2, RoundingMode.HALF_UP);
 
         double value = 1.0d - res.doubleValue();
-//		System.out.print(numOfWonModels + " " + numOfRefinedModels + " ");
         if (res.doubleValue() > 1.0d) {
             System.out.println("\nWARNING: increase the bound. ");
             return 1.0d;

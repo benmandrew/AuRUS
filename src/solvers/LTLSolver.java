@@ -93,6 +93,7 @@ public class LTLSolver {
         UNSAT,
         TIMEOUT,
         ERROR;
+
         public boolean inconclusive() {
             return this == TIMEOUT || this == ERROR;
         }

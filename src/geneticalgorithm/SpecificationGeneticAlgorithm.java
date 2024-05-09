@@ -267,9 +267,6 @@ public class SpecificationGeneticAlgorithm {
         // just for pretty print
         System.out.printf("%s\t%s\t%s\t%s\t%s%n", "iter", "fit", "chromosome", "#Pop", "#Sol");
 
-        // Lets add listener, which prints best chromosome after each iteration
-        //					//TODO: select a reasonable threshold
-//					private final double threshold = 0.0d;
         ga.addIterationListener(ga1 -> {
 
             SpecificationChromosome best = ga1.getBest();

@@ -33,7 +33,6 @@ public class ModelCountingSpecificationFitness implements Fitness<SpecificationC
 
     public ModelCountingSpecificationFitness(Tlsf originalSpecification) throws IOException, InterruptedException {
         this.originalSpecification = originalSpecification;
-//		generateAlphabet();
         SpecificationChromosome originalChromosome = new SpecificationChromosome(originalSpecification);
         compute_status(originalChromosome);
         this.originalStatus = originalChromosome.status;

@@ -1,6 +1,5 @@
 package geneticalgorithm;
 
-import geneticalgorithm.SpecificationChromosome.SPEC_STATUS;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
@@ -16,7 +15,7 @@ class SpecificationMutatorTest {
         String filename = "examples/minepump.tlsf";
         FileReader f = new FileReader(filename);
         Tlsf spec = TlsfParser.parse(f);
-        Tlsf mutated_spec = SpecificationMutator.mutate(spec, SPEC_STATUS.GUARANTEES);
+        Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
         System.out.println(TLSF_Utils.toTLSF(mutated_spec));
     }
@@ -26,7 +25,7 @@ class SpecificationMutatorTest {
         String filename = "examples/minepump.tlsf";
         FileReader f = new FileReader(filename);
         Tlsf spec = TlsfParser.parse(f);
-        Tlsf mutated_spec = SpecificationMutator.mutate(spec, SPEC_STATUS.ASSUMPTIONS);
+        Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
         System.out.println(TLSF_Utils.toTLSF(mutated_spec));
     }
@@ -36,7 +35,7 @@ class SpecificationMutatorTest {
         String filename = "examples/minepump.tlsf";
         FileReader f = new FileReader(filename);
         Tlsf spec = TlsfParser.parse(f);
-        Tlsf mutated_spec = SpecificationMutator.mutate(spec, SPEC_STATUS.UNREALIZABLE);
+        Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
         System.out.println(TLSF_Utils.toTLSF(mutated_spec));
     }

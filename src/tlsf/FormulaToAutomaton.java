@@ -77,7 +77,6 @@ public class FormulaToAutomaton<S> {
             else
                 setLabelEncoded(l);
         });
-//        System.out.println(labelIDs);
     }
 
     public <S> automata.Automaton formulaToDfa(LabelledFormula formula) {

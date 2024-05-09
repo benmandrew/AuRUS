@@ -127,7 +127,7 @@ public class TLSF_Utils {
 
         p.waitFor();
 
-        String tlsf = adaptTLSFSpec(TlsfParser.parse(new FileReader(new File(tlsfBasic))));
+        String tlsf = adaptTLSFSpec(TlsfParser.parse(new FileReader(tlsfBasic)));
         return TlsfParser.parse(tlsf);
     }
 
@@ -199,32 +199,6 @@ public class TLSF_Utils {
         tlsf_spec.append('}');
 
         return tlsf_spec.toString();
-    }
-
-    public static Tlsf empty_spec(Tlsf spec) {
-        StringBuilder TLSF_EMPTY_SPEC = new StringBuilder("INFO {\n"
-                + "  TITLE:       \"TLSF - Empty Specification\"\n"
-                + "  DESCRIPTION: \"Empty Specification\"\n"
-                + "  SEMANTICS:   Mealy\n"
-                + "  TARGET:      Mealy\n"
-                + "}\n"
-                + '\n'
-                + "MAIN {\n"
-                + '\n'
-                + "  INPUTS {\n");
-        int i = 0;
-        while (spec.inputs().get(i)) {
-            TLSF_EMPTY_SPEC.append(spec.variables().get(i)).append(";");
-            i++;
-        }
-        TLSF_EMPTY_SPEC.append("\n" + "  }\n" + "  OUTPUTS {\n" + "    ");
-        while (spec.outputs().get(i)) {
-            TLSF_EMPTY_SPEC.append(spec.variables().get(i)).append(";");
-            i++;
-        }
-        TLSF_EMPTY_SPEC.append("\n" + "  }\n" + '\n' + '\n' + "  ASSUMPTIONS {\n" + "    true;\n" + "  }\n" + '\n' + "  GUARANTEES {\n" + "    true;\n" + "  }  \n" + '}');
-
-        return TlsfParser.parse(TLSF_EMPTY_SPEC.toString());
     }
 
     public static Tlsf fromSpec(Tlsf spec) {
@@ -585,7 +559,7 @@ public class TLSF_Utils {
     }
 
     public static Tlsf change_guarantees(Tlsf spec, Formula new_guarantee) {
-        List<Formula> list = new LinkedList<Formula>();
+        List<Formula> list = new LinkedList<>();
         list.add(new_guarantee);
         return change_guarantees(spec, list);
     }
@@ -752,7 +726,7 @@ public class TLSF_Utils {
             else return false;
         }
 
-        List<String> vars = new ArrayList<String>();
+        List<String> vars = new ArrayList<>();
         int i = 0;
         while (tlsf1.inputs().get(i)) {
             vars.add(tlsf1.variables().get(i));
@@ -766,7 +740,7 @@ public class TLSF_Utils {
         }
 
         i = 0;
-        List<String> outs = new ArrayList<String>();
+        List<String> outs = new ArrayList<>();
         while (tlsf1.outputs().get(i)) {
             outs.add(tlsf1.variables().get(i));
             i++;
@@ -860,8 +834,8 @@ public class TLSF_Utils {
     }
 
     public static Tlsf fromSpectra(Spectra spec) {
-        List<Formula> additionalAssumptions = new LinkedList<Formula>();
-        List<Formula> additionalGuarantee = new LinkedList<Formula>();
+        List<Formula> additionalAssumptions = new LinkedList<>();
+        List<Formula> additionalGuarantee = new LinkedList<>();
         StringBuilder new_tlsf_spec = new StringBuilder("INFO {\n"
                 + "  TITLE:       " + "\"" + spec.title() + "\"" + "\n"
                 + "  DESCRIPTION: " + "\"" + "empty description" + "\"" + "\n");
@@ -881,7 +855,7 @@ public class TLSF_Utils {
         new_tlsf_spec.append("\n" + "  }\n" + '\n');
         //init
 
-        List<Formula> lst = new LinkedList<Formula>();
+        List<Formula> lst = new LinkedList<>();
         if (!spec.thetaE().isEmpty()) {
             for (Formula f : spec.thetaE()) {
                 if (hasGFPattern(f))
@@ -1018,7 +992,7 @@ public class TLSF_Utils {
     }
 
     public static Formula getFormulaWOGFpattern(Formula source) {
-        List<Formula> res = new ArrayList<Formula>();
+        List<Formula> res = new ArrayList<>();
         if (source instanceof GOperator) {
             var child = ((GOperator) source).operand;
             if (child instanceof FOperator) {

@@ -127,9 +127,9 @@ class SpecificationMergerTest {
         String filename = "examples/minepump.tlsf";
         FileReader f = new FileReader(filename);
         Tlsf spec = TlsfParser.parse(f);
-        Tlsf mutated_spec = SpecificationMutator.mutate(spec, SPEC_STATUS.GUARANTEES);
+        Tlsf mutated_spec = SpecificationMutator.mutate(spec);
         System.out.println(TLSF_Utils.toTLSF(mutated_spec));
-        List<Tlsf> mergeRes = SpecificationMerger.merge(spec, mutated_spec, SPEC_STATUS.ASSUMPTIONS, SPEC_STATUS.ASSUMPTIONS);
+        List<Tlsf> mergeRes = SpecificationMerger.merge(spec, mutated_spec);
         System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
     }
 

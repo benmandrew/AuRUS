@@ -17,59 +17,6 @@ public class SpecificationMerger {
     public static List<Tlsf> merge(Tlsf spec0, Tlsf spec1) {
         return merge(spec0, spec1, SPEC_STATUS.UNKNOWN, SPEC_STATUS.UNKNOWN, 0);
     }
-    public static List<Tlsf> merge(Tlsf spec0, Tlsf spec1, SPEC_STATUS status0, SPEC_STATUS status1) {
-        List<Tlsf> merged_specifications = new LinkedList<>();
-        List<Formula> assumptionConjuncts = new LinkedList<>();
-        //take assumptions from spec0?
-        if (Settings.RANDOM_GENERATOR.nextBoolean()) {
-            for (Formula c : Formula_Utils.splitConjunction(spec0.assume()))
-                if (!assumptionConjuncts.contains(c))
-                    assumptionConjuncts.add(c);
-        }
-        //take assumptions from spec1?
-        if (Settings.RANDOM_GENERATOR.nextBoolean()) {
-            for (Formula c : Formula_Utils.splitConjunction(spec1.assume()))
-                if (!assumptionConjuncts.contains(c))
-                    assumptionConjuncts.add(c);
-        }
-
-        List<Formula> guaranteeConjuncts = new LinkedList<>();
-        //take guarantees from spec0?
-        if (Settings.RANDOM_GENERATOR.nextBoolean()) {
-            for (Formula c : spec0.guarantee())
-                if (!guaranteeConjuncts.contains(c))
-                    guaranteeConjuncts.add(c);
-        }
-        //take guarantees from spec1?
-        if (Settings.RANDOM_GENERATOR.nextBoolean()) {
-            for (Formula c : spec1.guarantee())
-                if (!guaranteeConjuncts.contains(c))
-                    guaranteeConjuncts.add(c);
-        }
-
-        //new spec0 versions with the new assumptions and guarantees
-        //Tlsf new_spec0 = TLSF_Utils.fromSpec(spec0);
-		/*if (Settings.RANDOM_GENERATOR.nextBoolean())
-			merged_specifications.add(TLSF_Utils.change_assume(spec0,new_assume));
-		else
-			merged_specifications.add(TLSF_Utils.change_guarantees(spec0,new_guarantee));
-
-		//new spec1 versions with the new assumptions and guarantees
-		//Tlsf new_spec1 = TLSF_Utils.fromSpec(spec1);
-		if (Settings.RANDOM_GENERATOR.nextBoolean())
-			merged_specifications.add(TLSF_Utils.change_assume(spec1,new_assume));
-		else
-			merged_specifications.add(TLSF_Utils.change_guarantees(spec1,new_guarantee));*/
-
-        //new specification with the new assumptions and guarantees
-        if (!guaranteeConjuncts.isEmpty()) {
-            Tlsf new_spec = TLSF_Utils.change_assume(spec0, assumptionConjuncts);
-            new_spec = TLSF_Utils.change_guarantees(new_spec, guaranteeConjuncts);
-            merged_specifications.add(new_spec);
-        }
-        return merged_specifications;
-    }
-
 
     // level == 0 implements random swap (no guarantee consistency);
     // level == 1 implements random merge of the assumptions and guarantees (no guarantee consistency);

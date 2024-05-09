@@ -1,6 +1,5 @@
 package geneticalgorithm;
 
-import geneticalgorithm.SpecificationChromosome.SPEC_STATUS;
 import main.Settings;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
@@ -19,9 +18,9 @@ public class SpecificationCrossover {
 
 
     public static List<Tlsf> apply(Tlsf spec0, Tlsf spec1) {
-        List<Tlsf> res0 = apply(spec0, spec1, SPEC_STATUS.UNKNOWN, SPEC_STATUS.UNKNOWN, 0);
-        List<Tlsf> res1 = apply(spec0, spec1, SPEC_STATUS.UNKNOWN, SPEC_STATUS.UNKNOWN, 1);
-        List<Tlsf> res2 = apply(spec0, spec1, SPEC_STATUS.UNKNOWN, SPEC_STATUS.UNKNOWN, 2);
+        List<Tlsf> res0 = apply(spec0, spec1, 0);
+        List<Tlsf> res1 = apply(spec0, spec1, 1);
+        List<Tlsf> res2 = apply(spec0, spec1, 2);
         res0.addAll(res1);
         res0.addAll(res2);
         return res0;
@@ -32,7 +31,7 @@ public class SpecificationCrossover {
     // level == 2 swaps assumptions and guarantees preserving consistency; and
     // level == 3 merges the assumptions and guarantees preserving consistency.
     // level == 4 merges the formulas assumptions and guarantees preserving consistency.
-    public static List<Tlsf> apply(Tlsf spec0, Tlsf spec1, SPEC_STATUS status0, SPEC_STATUS status1, int level) {
+    public static List<Tlsf> apply(Tlsf spec0, Tlsf spec1, int level) {
         List<Tlsf> merged_specifications = new LinkedList<>();
         List<Formula> assumptionConjuncts = new LinkedList<>();
         List<Formula> guaranteeConjuncts = new LinkedList<>();

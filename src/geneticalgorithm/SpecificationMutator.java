@@ -1,6 +1,5 @@
 package geneticalgorithm;
 
-import geneticalgorithm.SpecificationChromosome.SPEC_STATUS;
 import main.Settings;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
@@ -17,7 +16,7 @@ import java.util.Set;
 
 public class SpecificationMutator {
 
-    public static Tlsf mutate(Tlsf spec, SPEC_STATUS status) {
+    public static Tlsf mutate(Tlsf spec) {
         //create empty specification
         Tlsf new_spec = TLSF_Utils.fromSpec(spec);
         int random = Settings.RANDOM_GENERATOR.nextInt(100);

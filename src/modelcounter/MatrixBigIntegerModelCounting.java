@@ -9,7 +9,6 @@ import org.apache.commons.math3.linear.Array2DRowFieldMatrix;
 import org.apache.commons.math3.linear.FieldMatrix;
 import owl.ltl.LabelledFormula;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 
@@ -18,9 +17,9 @@ public class MatrixBigIntegerModelCounting {
     private final Graph<String> nba;
     private final boolean exhaustive;
 
-    public MatrixBigIntegerModelCounting(LabelledFormula formula, boolean exhaustive) throws IOException, InterruptedException {
+    public MatrixBigIntegerModelCounting(LabelledFormula formula, boolean exhaustive) {
         this.exhaustive = exhaustive;
-        Writer<String> w = Writer.getWriter(Writer.Format.FSP, System.out);
+        Writer.getWriter(Writer.Format.FSP, System.out);
         // Convert the ltl formula to an automaton with OWL
         nba = Buchi2Graph.LTL2Graph(formula);
         if (exhaustive) {

@@ -23,7 +23,7 @@ import java.util.*;
 
 import static owl.automaton.output.HoaPrinter.HoaOption.SIMPLE_TRANSITION_LABELS;
 
-public class FormulaToRE<S> {
+public class FormulaToRE {
 
     //Map labels to ids
     public java.util.Map<String, String> labelIDs = new HashMap<>();

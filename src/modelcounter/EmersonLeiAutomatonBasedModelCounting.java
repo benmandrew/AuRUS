@@ -23,17 +23,11 @@ import java.util.function.IntConsumer;
 
 public class EmersonLeiAutomatonBasedModelCounting<S> {
 
+    private final LabelledFormula formula;
     int BOUND = 0;
-    /**
-     * Build the Transfer Matrix for the given DFA
-     *
-     * @param automaton is the DFA
-     * @return a n x n matrix M where M[i,j] is the number of transitions from state si to state sj
-     */
     long transitions = 0;
     private FieldMatrix<BigFraction> T = null;
     private Automaton<S, EmersonLeiAcceptance> automaton = null;
-    private LabelledFormula formula;
     private Object[] states = null;
 
 
@@ -44,7 +38,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
         Future<String> future = executorService.submit(this::parse);
         try {
             // Wait for at most TIMEOUT seconds until the result is returned
-            String result = future.get(Settings.PARSING_TIMEOUT, TimeUnit.SECONDS);
+            future.get(Settings.PARSING_TIMEOUT, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             System.out.println("EmersonLeiAutomatonBasedModelCounting: TIMEOUT parsing.");
         } catch (InterruptedException | ExecutionException e) {
@@ -71,8 +65,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
         Future<BigInteger> future = executorService.submit(this::countModels);
         try {
             // Wait for at most TIMEOUT seconds until the result is returned
-            BigInteger result = future.get(Settings.MC_TIMEOUT, TimeUnit.SECONDS);
-            return result;
+            return future.get(Settings.MC_TIMEOUT, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             System.out.println("EmersonLeiAutomatonBasedModelCounting::count TIMEOUT.");
         } catch (InterruptedException | ExecutionException e) {
@@ -175,7 +168,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
                 pData[i][j] = new BigFraction(0);
             }
         }
-        return new Array2DRowFieldMatrix<BigFraction>(pData, false);
+        return new Array2DRowFieldMatrix<>(pData, false);
     }
 
     public void printMatrix(FieldMatrix<BigFraction> M) {

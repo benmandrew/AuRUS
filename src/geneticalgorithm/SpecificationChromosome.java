@@ -59,7 +59,7 @@ public class SpecificationChromosome implements Chromosome<SpecificationChromoso
     @Override
     public SpecificationChromosome mutate() {
         //clone the current specification
-        Tlsf mutated_spec = SpecificationMutator.mutate(spec, status);
+        Tlsf mutated_spec = SpecificationMutator.mutate(spec);
         if (mutated_spec == null)
             return null;
         return new SpecificationChromosome(mutated_spec);
@@ -69,9 +69,7 @@ public class SpecificationChromosome implements Chromosome<SpecificationChromoso
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        long temp;
-        temp = Double.doubleToLongBits(fitness);
-        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + Double.hashCode(fitness);
         result = prime * result + ((spec == null) ? 0 : spec.hashCode());
         result = prime * result + ((status == null) ? 0 : status.hashCode());
         return result;

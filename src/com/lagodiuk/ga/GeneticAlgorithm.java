@@ -62,7 +62,7 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
         Population<C> newPopulation = new Population<C>();
 
         IntStream.iterate(0,
-                i -> (i < parentPopulationSize) && (i < this.parentChromosomesSurviveCount), i -> i + 1).
+                        i -> (i < parentPopulationSize) && (i < this.parentChromosomesSurviveCount), i -> i + 1).
                 mapToObj(i -> this.population.getChromosomeByIndex(i)).forEach(newPopulation::addChromosome);
 
         // apply mutation
@@ -115,6 +115,7 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
             population.trim(this.parentChromosomesSurviveCount);
         }
     }
+
     public void evolve(int count) {
         this.terminate = false;
         startRunningTime = Instant.now();

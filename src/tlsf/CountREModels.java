@@ -13,7 +13,7 @@ public class CountREModels {
     FormulaToRE translatorLTLtoRE;
 
     public CountREModels() {
-        translatorLTLtoRE = new FormulaToRE<>();
+        translatorLTLtoRE = new FormulaToRE();
     }
 
     public BigInteger count(List<LabelledFormula> formulas, int bound, boolean exhaustive, boolean positive) throws IOException, InterruptedException {
@@ -34,12 +34,11 @@ public class CountREModels {
         if (!exhaustive)
             return count;
         else {
-            BigInteger res = count.divide(BigInteger.valueOf(bound));
-            return res;
+            return count.divide(BigInteger.valueOf(bound));
         }
     }
 
-    public String genABCString(LabelledFormula ltl) throws IOException, InterruptedException {
+    public String genABCString(LabelledFormula ltl) {
 //		translatorLTLtoRE = new FormulaToRE();
         int vars = ltl.variables().size();
         if (vars > 5 && vars < 12)
