@@ -1,4 +1,4 @@
-package tlsf;
+package utils;
 /*
  * Copyright (C) 2016 - 2018  (See AUTHORS)
  *
@@ -428,9 +428,9 @@ class TlsfParserTest {
     @Test
     void testTlsfFile2() throws IOException, InterruptedException {
         String filename = "examples/round_robin_arbiter.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
-        //Tlsf tlsf2 = TlsfParser.parse(TLSF_Utils.toTLSF(tlsf));
-        System.out.println("TLSF TEST2 \n " + TLSF_Utils.toTLSF(tlsf) + " \n end TLSF TEST2");
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
+        //Tlsf tlsf2 = TlsfParser.parse(TlsfUtils.toTLSF(tlsf));
+        System.out.println("TLSF TEST2 \n " + TlsfUtils.toTLSF(tlsf) + " \n end TLSF TEST2");
 
     }
 
@@ -447,9 +447,9 @@ class TlsfParserTest {
     @Test
     void testTlsfInitially() throws IOException, InterruptedException {
         String filename = "examples/collector_v4_6.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
-        Tlsf tlsf2 = TlsfParser.parse(TLSF_Utils.toTLSF(tlsf));
-        System.out.println(TLSF_Utils.toTLSF(tlsf2));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
+        Tlsf tlsf2 = TlsfParser.parse(TlsfUtils.toTLSF(tlsf));
+        System.out.println(TlsfUtils.toTLSF(tlsf2));
 
     }
 
@@ -457,27 +457,27 @@ class TlsfParserTest {
     void testTlsfInitiallyBasic() throws IOException, InterruptedException {
         String filename = "examples/collector_v4_6_basic.tlsf";
         Tlsf tlsf2 = TlsfParser.parse(new FileReader(filename));
-        System.out.println(TLSF_Utils.toTLSF(tlsf2));
+        System.out.println(TlsfUtils.toTLSF(tlsf2));
 
     }
 
     @Test
     void testTlsfEmpty() throws IOException {
-        Tlsf tlsf = TlsfParser.parse(TLSF_Utils.TLSF_EXAMPLE_SPEC);
+        Tlsf tlsf = TlsfParser.parse(TlsfUtils.TLSF_EXAMPLE_SPEC);
         System.out.println(tlsf);
     }
 
     @Test
     void testTlsfFullString() throws IOException, InterruptedException {
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(TLSFFULL);
-        System.out.println("TLSF FULL TEST STRING \n " + TLSF_Utils.toTLSF(tlsf) + " \n END TLSF FULL TEST STRING");
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(TLSFFULL);
+        System.out.println("TLSF FULL TEST STRING \n " + TlsfUtils.toTLSF(tlsf) + " \n END TLSF FULL TEST STRING");
     }
 
     @Test
     void testTlsfChangeSpec() throws IOException {
-        Tlsf tlsf = TlsfParser.parse(TLSF_Utils.TLSF_EXAMPLE_SPEC);
-        Tlsf tlsf1 = TLSF_Utils.change_assume(tlsf, LtlParser.syntax("G(a)"));
-        Tlsf tlsf2 = TLSF_Utils.change_initially(tlsf, LtlParser.syntax("b & c"));
+        Tlsf tlsf = TlsfParser.parse(TlsfUtils.TLSF_EXAMPLE_SPEC);
+        Tlsf tlsf1 = TlsfUtils.change_assume(tlsf, LtlParser.syntax("G(a)"));
+        Tlsf tlsf2 = TlsfUtils.change_initially(tlsf, LtlParser.syntax("b & c"));
         List<Tlsf> res = SpecificationMerger.merge(tlsf1, tlsf2);
         System.out.println(res);
     }
@@ -632,17 +632,17 @@ class TlsfParserTest {
         Formula f1 = LtlParser.syntax("X(a & b)", vars);
         System.out.print(f0 + " ");
         System.out.print(f0.height() + " ");
-        System.out.println(Formula_Utils.formulaSize(f0));
+        System.out.println(FormulaUtils.formulaSize(f0));
         System.out.print(f1 + " ");
         System.out.print(f1.height() + " ");
-        System.out.println(Formula_Utils.formulaSize(f1));
-        int diff = Formula_Utils.compare(f0, f1);
+        System.out.println(FormulaUtils.formulaSize(f1));
+        int diff = FormulaUtils.compare(f0, f1);
         System.out.println(diff);
-        int diff2 = Collections3.compare(Formula_Utils.subformulas(f0), Formula_Utils.subformulas(f1));
+        int diff2 = Collections3.compare(FormulaUtils.subformulas(f0), FormulaUtils.subformulas(f1));
         System.out.println(diff2);
         int diffc = Formulas.compare(Set.of(f0), Set.of(f1));
         System.out.println(diffc);
-        int diffs = Formulas.compare(Formula_Utils.subformulas(f0), Formula_Utils.subformulas(f1));
+        int diffs = Formulas.compare(FormulaUtils.subformulas(f0), FormulaUtils.subformulas(f1));
         System.out.println(diffs);
         System.out.println(f0.compareTo(f1));
     }
@@ -724,14 +724,14 @@ class TlsfParserTest {
     @Test
     void testSpectra1() throws IOException, InterruptedException {
         Spectra spectra = SpectraParser.parse(new FileReader("examples/icse2019/Simple/RG1.spectra"));
-        Tlsf spec = TLSF_Utils.fromSpectra(spectra);
+        Tlsf spec = TlsfUtils.fromSpectra(spectra);
         System.out.println(spec);
     }
 
     @Test
     void testSpectra2() throws IOException, InterruptedException {
         Spectra spectra = SpectraParser.parse(new FileReader("examples/icse2019/SYNTECH15/ColorSortLTLUnrealizable2_791_ColorSort_unrealizable.spectra"));
-        Tlsf spec = TLSF_Utils.fromSpectra(spectra);
+        Tlsf spec = TlsfUtils.fromSpectra(spectra);
         System.out.println(spec);
     }
 

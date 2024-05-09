@@ -1,4 +1,4 @@
-package solvers;
+package utils;
 
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -46,7 +46,7 @@ public class SolverUtils {
     }
 
     private static String processLTLFormula(String formula, boolean aalta_syntax) {
-        String processedFormula = aalta_syntax ? formula.replaceAll("\\!", "~") : formula.replaceAll("\\!", "!");
+        String processedFormula = formula.replaceAll("!", aalta_syntax ? "~" : "!");
         processedFormula = insertSpaceBeforeUppercase(processedFormula);
         return replaceSymbols(processedFormula);
     }

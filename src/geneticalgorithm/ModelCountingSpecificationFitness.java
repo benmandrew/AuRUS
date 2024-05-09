@@ -11,11 +11,11 @@ import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
-import solvers.SolverUtils;
 import solvers.StrixHelper;
 import solvers.StrixHelper.RealizabilitySolverResult;
-import tlsf.Formula_Utils;
-import tlsf.TLSF_Utils;
+import utils.FormulaUtils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -117,7 +117,7 @@ public class ModelCountingSpecificationFitness implements Fitness<SpecificationC
         chromosome.fitness = fitness;
         if (fitness > 1.0d) {
             System.out.printf("BEST Fitness: %.2f%n", fitness);
-            System.out.println(TLSF_Utils.adaptTLSFSpec(chromosome.spec));
+            System.out.println(TlsfUtils.adaptTLSFSpec(chromosome.spec));
             throw new RuntimeException();
         }
 
@@ -216,8 +216,8 @@ public class ModelCountingSpecificationFitness implements Fitness<SpecificationC
     public double compute_syntactic_distance_size(Tlsf original, Tlsf refined) {
         Formula f0 = original.toFormula().formula();
         Formula f1 = refined.toFormula().formula();
-        double orig_size = Formula_Utils.formulaSize(f0);
-        double ref_size = Formula_Utils.formulaSize(f1);
+        double orig_size = FormulaUtils.formulaSize(f0);
+        double ref_size = FormulaUtils.formulaSize(f1);
         double orig_constraints_size = original.toAssertGuaranteeConjuncts().size();
         double ref_constraints_size = refined.toAssertGuaranteeConjuncts().size();
 
@@ -228,9 +228,9 @@ public class ModelCountingSpecificationFitness implements Fitness<SpecificationC
 
 
     public double compute_syntactic_distance(Tlsf original, Tlsf refined) {
-        List<LabelledFormula> sub_original = Formula_Utils.subformulas(original.toFormula());
+        List<LabelledFormula> sub_original = FormulaUtils.subformulas(original.toFormula());
 //		sub_original.remove(original.toFormula());
-        List<LabelledFormula> sub_refined = Formula_Utils.subformulas(refined.toFormula());
+        List<LabelledFormula> sub_refined = FormulaUtils.subformulas(refined.toFormula());
 //		sub_refined.remove(refined.toFormula());
 
 //		Set<LabelledFormula> lostSubs = Sets.difference(Sets.newHashSet(sub_original), Sets.newHashSet(sub_refined));

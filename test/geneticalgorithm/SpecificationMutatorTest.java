@@ -3,7 +3,7 @@ package geneticalgorithm;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,7 +17,7 @@ class SpecificationMutatorTest {
         Tlsf spec = TlsfParser.parse(f);
         Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
-        System.out.println(TLSF_Utils.toTLSF(mutated_spec));
+        System.out.println(TlsfUtils.toTLSF(mutated_spec));
     }
 
     @Test
@@ -27,7 +27,7 @@ class SpecificationMutatorTest {
         Tlsf spec = TlsfParser.parse(f);
         Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
-        System.out.println(TLSF_Utils.toTLSF(mutated_spec));
+        System.out.println(TlsfUtils.toTLSF(mutated_spec));
     }
 
     @Test
@@ -37,6 +37,6 @@ class SpecificationMutatorTest {
         Tlsf spec = TlsfParser.parse(f);
         Tlsf mutated_spec = SpecificationMutator.mutate(spec);
 
-        System.out.println(TLSF_Utils.toTLSF(mutated_spec));
+        System.out.println(TlsfUtils.toTLSF(mutated_spec));
     }
 }

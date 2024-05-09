@@ -6,21 +6,16 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SyntacticSimplifier;
 import owl.ltl.spectra.Spectra;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
 
 public class StrixHelper {
 
-    public static RealizabilitySolverResult checkRealizability(File tlsf) throws IOException, InterruptedException {
-        TLSF_Utils.toBasicTLSF(tlsf);
-        String tlsfBasic = tlsf.getPath().replace(".tlsf", "_basic.tlsf");
-        return executeStrix(tlsfBasic);
-    }
-
     public static RealizabilitySolverResult checkRealizability(String tlsf) throws IOException, InterruptedException {
-        Tlsf tlsf2 = TLSF_Utils.toBasicTLSF(tlsf);
+        Tlsf tlsf2 = TlsfUtils.toBasicTLSF(tlsf);
         return checkRealizability(tlsf2);
     }
 
@@ -36,9 +31,9 @@ public class StrixHelper {
             try {
                 //	private static int TIMEOUT = 180;
                 FileWriter writer = new FileWriter(file.getPath());
-                writer.write(TLSF_Utils.tlsf2spectra(tlsf));
+                writer.write(TlsfUtils.tlsf2spectra(tlsf));
 //				else
-//					writer.write(TLSF_Utils.adaptTLSFSpec(tlsf));
+//					writer.write(TlsfUtils.adaptTLSFSpec(tlsf));
                 writer.flush();
                 writer.close();
             } catch (IOException e) {
@@ -255,7 +250,7 @@ public class StrixHelper {
 
     }
 
-    public static enum RealizabilitySolverResult {
+    public enum RealizabilitySolverResult {
         REALIZABLE,
         UNREALIZABLE,
         TIMEOUT,

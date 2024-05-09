@@ -6,7 +6,7 @@ import owl.ltl.parser.SpectraParser;
 import owl.ltl.spectra.Spectra;
 import owl.ltl.tlsf.Tlsf;
 import solvers.StrixHelper.RealizabilitySolverResult;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -221,7 +221,7 @@ class StrixHelperTest {
 
     @Test
     void testCheckRealizability3() throws IOException, InterruptedException {
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(TLSF2);
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(TLSF2);
         assertEquals(StrixHelper.checkRealizability(tlsf), RealizabilitySolverResult.UNREALIZABLE);
     }
 
@@ -235,7 +235,7 @@ class StrixHelperTest {
     void testCheckRealizability7() throws IOException, InterruptedException {
         String filename = "case-studies/lily02/genuine/lilydemo02_fixed.tlsf";
         FileReader f = new FileReader(filename);
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         StrixHelper.RealizabilitySolverResult res = StrixHelper.checkRealizability(tlsf);
         System.out.println(res);
         assertEquals(res, RealizabilitySolverResult.REALIZABLE);
@@ -250,8 +250,8 @@ class StrixHelperTest {
     @Test
     void testSpectra3() throws IOException, InterruptedException {
         Spectra spectra = SpectraParser.parse(new FileReader("examples/icse2019/SYNTECH15/ColorSortLTLUnrealizable1_790_ColorSort_unrealizable.spectra"));
-        Tlsf tlsf = TLSF_Utils.fromSpectra(spectra);
-        System.out.println(TLSF_Utils.adaptTLSFSpec(tlsf));
+        Tlsf tlsf = TlsfUtils.fromSpectra(spectra);
+        System.out.println(TlsfUtils.adaptTLSFSpec(tlsf));
         Settings.STRIX_TIMEOUT = 600;
     }
 
@@ -261,7 +261,7 @@ class StrixHelperTest {
 //        String dummy = "docker/out2.tlsf";
 //        Process pr = Runtime.getRuntime().exec(new String[]{"cp", filename, dummy});
 //        pr.waitFor();
-//        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(dummy));
+//        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(dummy));
 //
 //        Settings.STRIX_TIMEOUT = 600;
 //        StrixHelper.RealizabilitySolverResult res = StrixHelper.checkRealizability(tlsf);
@@ -288,7 +288,7 @@ class StrixHelperTest {
 //            System.out.println(filename);
 //            try {
 //                FileReader f = new FileReader(filename);
-//                Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+//                Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
 //                StrixHelper.RealizabilitySolverResult res = StrixHelper.checkRealizability(tlsf);
 //
 //                System.out.println(res);
@@ -333,7 +333,7 @@ class StrixHelperTest {
 //            System.out.println(filename);
 //            try {
 //                Spectra spectra = SpectraParser.parse(new FileReader(filename));
-//                StrixHelper.RealizabilitySolverResult res = StrixHelper.checkRealizability(TLSF_Utils.fromSpectra(spectra));
+//                StrixHelper.RealizabilitySolverResult res = StrixHelper.checkRealizability(TlsfUtils.fromSpectra(spectra));
 //                System.out.println(res);
 //                if (res == null || res == RealizabilitySolverResult.ERROR)
 //                    errors++;

@@ -3,7 +3,7 @@ package main;
 import geneticalgorithm.SpecificationChromosome;
 import geneticalgorithm.SpecificationGeneticAlgorithm;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -103,7 +103,7 @@ public class Main {
                 semantic_factor = Double.parseDouble(factors[2]);
             } else if (arg.startsWith("-ref=")) {
                 String ref_name = arg.replace("-ref=", "");
-                Tlsf ref_sol = TLSF_Utils.toBasicTLSF(new File(ref_name));
+                Tlsf ref_sol = TlsfUtils.toBasicTLSF(new File(ref_name));
                 referenceSolutions.add(ref_sol);
             } else if (arg.startsWith("-out=")) {
                 outname = arg.replace("-out=", "");
@@ -119,7 +119,7 @@ public class Main {
             return;
         }
         //FileReader f = new FileReader(filename);
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         SpecificationGeneticAlgorithm ga = new SpecificationGeneticAlgorithm();
         if (popSize > 0) Settings.GA_POPULATION_SIZE = popSize;
         if (maxNumOfInd > 0) Settings.GA_MAX_NUM_INDIVIDUALS = maxNumOfInd;
@@ -173,7 +173,7 @@ public class Main {
             File file = new File(sol_name);
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(TLSF_Utils.adaptTLSFSpec(sol.spec));
+            bw.write(TlsfUtils.adaptTLSFSpec(sol.spec));
             bw.write("\n//fitness: " + sol.fitness);
             bw.write("\n//syntactic: " + sol.syntactic_distance);
             bw.write("\n//semantic: " + sol.semantic_distance);

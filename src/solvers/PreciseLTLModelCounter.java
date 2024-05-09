@@ -30,7 +30,7 @@ public class PreciseLTLModelCounter {
 
     public BigInteger count(Formula f, int numOfVars) throws IOException, InterruptedException {
         String formula = f.toString().replaceAll("([A-Z])", " $1 ");
-        List<String> vars = new LinkedList<String>();
+        List<String> vars = new LinkedList<>();
         for (int i = 0; i < numOfVars; i++)
             vars.add("p" + i);
         return count(formula, vars);

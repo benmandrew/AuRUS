@@ -4,12 +4,12 @@ import automata.State;
 import automata.Transition;
 import gov.nasa.ltl.graph.*;
 import owl.ltl.LabelledFormula;
-import tlsf.FormulaToAutomaton;
+import utils.Formula2Automaton;
 
 public class Buchi2Graph {
 
     public static Graph<String> LTL2Graph(LabelledFormula formula) {
-        FormulaToAutomaton translator = new FormulaToAutomaton();
+        Formula2Automaton translator = new Formula2Automaton();
         translator.generateLabels(formula.variables());
         automata.Automaton dfa = translator.formulaToDfa(formula);
 //		System.out.println(dfa);

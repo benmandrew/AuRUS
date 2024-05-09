@@ -4,7 +4,7 @@ import org.junit.Test;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -103,7 +103,7 @@ public class StrongSatisfiabilityCheckerTest {
     @Test
     public void testAutomata_full_arbiter_unreal1_3_4() throws IOException, InterruptedException {
         String filename = "examples/syntcomp2019/unreal/9158599/full_arbiter_unreal1_3_4.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         LabelledFormula f0 = tlsf.toFormula();
         System.out.println(f0);
         StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);
@@ -116,7 +116,7 @@ public class StrongSatisfiabilityCheckerTest {
     @Test
     public void testAutomata_round_robin_arbiter_unreal1_2_3() throws IOException, InterruptedException {
         String filename = "examples/syntcomp2019/unreal/9158546/round_robin_arbiter_unreal1_2_3.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         LabelledFormula f0 = tlsf.toFormula();
         System.out.println(f0);
         StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);
@@ -138,7 +138,7 @@ public class StrongSatisfiabilityCheckerTest {
             for (String filename : specifications) {
                 System.out.println(filename);
                 FileReader f = new FileReader(filename);
-                Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                 LabelledFormula f0 = tlsf.toFormula();
 //                System.out.println(f0);
                 StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);
@@ -162,7 +162,7 @@ public class StrongSatisfiabilityCheckerTest {
     @Test
     public void testAutomata_SensorSelector_real() throws IOException, InterruptedException {
         String filename = "examples/syntcomp2019/LTL/9127916/SensorSelector.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         LabelledFormula f0 = tlsf.toFormula();
         System.out.println(f0);
         StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);
@@ -174,7 +174,7 @@ public class StrongSatisfiabilityCheckerTest {
     @Test
     public void testAutomata_collector_v4_5_real() throws IOException, InterruptedException {
         String filename = "examples/syntcomp2019/LTL/9173705/collector_v4_5.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         LabelledFormula f0 = tlsf.toFormula();
         System.out.println(f0);
         StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);
@@ -197,7 +197,7 @@ public class StrongSatisfiabilityCheckerTest {
                 Instant initialExecutionTime = Instant.now();
                 System.out.println(filename);
                 FileReader f = new FileReader(filename);
-                Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                 LabelledFormula f0 = tlsf.toFormula();
 //                System.out.println(f0);
                 StrongSatisfiabilityChecker s = new StrongSatisfiabilityChecker(f0);

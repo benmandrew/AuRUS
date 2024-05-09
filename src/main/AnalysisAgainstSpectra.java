@@ -7,8 +7,8 @@ import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
-import solvers.SolverUtils;
-import tlsf.TLSF_Utils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,12 +53,12 @@ public class AnalysisAgainstSpectra {
                 }
 
                 for (String filename : specifications) {
-                    Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                    Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                     targetSolutions.add(tlsf);
                 }
                 System.out.println("target Solutions: " + targetSolutions.size());
             } else if (arg.startsWith("-original=")) {
-                original = TLSF_Utils.toBasicTLSF(new File(arg.replace("-original=", "")));
+                original = TlsfUtils.toBasicTLSF(new File(arg.replace("-original=", "")));
             } else if (arg.startsWith("-remove-same-guarantees")) {
                 rmSpecsWithsameGuarantees = true;
             } else if (arg.startsWith("-satTO=")) {
@@ -77,7 +77,7 @@ public class AnalysisAgainstSpectra {
                             .filter(f -> f.endsWith(".spectra")).collect(Collectors.toList());
                 }
                 for (String filename : specifications) {
-                    Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                    Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                     sourceSolutions.add(tlsf);
                 }
                 System.out.println("source Solutions: " + sourceSolutions.size());

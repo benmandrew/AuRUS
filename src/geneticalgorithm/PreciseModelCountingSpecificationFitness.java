@@ -9,10 +9,10 @@ import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
 import solvers.PreciseLTLModelCounter;
-import solvers.SolverUtils;
 import solvers.StrixHelper;
 import solvers.StrixHelper.RealizabilitySolverResult;
-import tlsf.Formula_Utils;
+import utils.FormulaUtils;
+import utils.SolverUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -224,8 +224,8 @@ public class PreciseModelCountingSpecificationFitness implements Fitness<Specifi
     }
 
     public double compute_syntactic_distance_size(Tlsf original, Tlsf refined) {
-        double orig_size = Formula_Utils.formulaSize(original.toFormula().formula());
-        double ref_size = Formula_Utils.formulaSize(refined.toFormula().formula());
+        double orig_size = FormulaUtils.formulaSize(original.toFormula().formula());
+        double ref_size = FormulaUtils.formulaSize(refined.toFormula().formula());
         double diff = Math.abs(orig_size - ref_size);
         return 1.0d - (diff / orig_size);
     }

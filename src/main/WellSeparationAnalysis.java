@@ -7,9 +7,9 @@ import owl.ltl.GOperator;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
-import solvers.SolverUtils;
 import solvers.StrixHelper;
-import tlsf.TLSF_Utils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,7 +56,7 @@ public class WellSeparationAnalysis {
         for (String filename : specifications) {
             System.out.println(filename);
             try {
-                Tlsf spec = TLSF_Utils.toBasicTLSF(new File(filename));
+                Tlsf spec = TlsfUtils.toBasicTLSF(new File(filename));
                 Formula env_sys = Conjunction.of(spec.initially(), GOperator.of(spec.require()), spec.preset(), GOperator.of(Conjunction.of(spec.assert_())), spec.assume(), Conjunction.of(spec.guarantee()));
                 SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
                 Formula env_sys2 = env_sys.accept(visitor);
@@ -66,7 +66,7 @@ public class WellSeparationAnalysis {
                     numOfTimeout++;
                 else if (res == LTLSolver.SolverResult.SAT) {
                     numOfSAT++;
-                    Tlsf wellSeparatedSpec = TLSF_Utils.change_guarantees(spec, BooleanConstant.FALSE);
+                    Tlsf wellSeparatedSpec = TlsfUtils.change_guarantees(spec, BooleanConstant.FALSE);
                     StrixHelper.RealizabilitySolverResult rel = StrixHelper.checkRealizability(wellSeparatedSpec);
                     if (rel == null)
                         numOfTimeout++;

@@ -3,7 +3,7 @@ package owl.ltl.visitors;
 import main.Settings;
 import owl.ltl.*;
 import owl.ltl.rewriter.NormalForms;
-import tlsf.Formula_Utils;
+import utils.FormulaUtils;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ public class FormulaWeakening implements Visitor<Formula> {
     private final List<Literal> literalCache;
     private final List<String> variables;
     private final boolean fixedVariables;
-    private int weakening_rate;
+    private final int weakening_rate;
     private int numOfAllowedWeakenings;
 
     public FormulaWeakening(List<String> literals, int weakening_rate, int num_of_weakening_to_apply) {
@@ -113,7 +113,7 @@ public class FormulaWeakening implements Visitor<Formula> {
     public Formula visit(FOperator fOperator) {
         Formula operand = fOperator.operand.accept(this);
         Formula current = FOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return fOperator;
         if (numOfAllowedWeakenings > 0) {
@@ -153,7 +153,7 @@ public class FormulaWeakening implements Visitor<Formula> {
     public Formula visit(GOperator gOperator) {
         Formula operand = gOperator.operand.accept(this);
         Formula current = GOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return gOperator;
         if (numOfAllowedWeakenings > 0) {
@@ -191,7 +191,7 @@ public class FormulaWeakening implements Visitor<Formula> {
     @Override
     public Formula visit(Conjunction conjunction) {
         Formula current = Conjunction.of(conjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return conjunction;
         if (numOfAllowedWeakenings > 0) {
@@ -205,7 +205,7 @@ public class FormulaWeakening implements Visitor<Formula> {
                 else if (option == 1) {// weak(a & b) = a
                     if (!current.children().isEmpty()) {
                         int to_be_removed = Settings.RANDOM_GENERATOR.nextInt(current.children().size());
-                        List<Formula> new_set_children = new LinkedList<Formula>();
+                        List<Formula> new_set_children = new LinkedList<>();
                         Iterator<Formula> it = current.children().iterator();
                         int i = 0;
                         while (it.hasNext()) {
@@ -229,7 +229,7 @@ public class FormulaWeakening implements Visitor<Formula> {
     @Override
     public Formula visit(Disjunction disjunction) {
         Formula current = Disjunction.of(disjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return disjunction;
         if (numOfAllowedWeakenings > 0) {
@@ -254,7 +254,7 @@ public class FormulaWeakening implements Visitor<Formula> {
         Formula left = uOperator.left.accept(this);
         Formula right = uOperator.right.accept(this);
         Formula current = UOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return uOperator;
         if (numOfAllowedWeakenings > 0) {
@@ -282,7 +282,7 @@ public class FormulaWeakening implements Visitor<Formula> {
         Formula left = wOperator.left.accept(this);
         Formula right = wOperator.right.accept(this);
         Formula current = WOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return wOperator;
         if (numOfAllowedWeakenings > 0) {
@@ -313,7 +313,7 @@ public class FormulaWeakening implements Visitor<Formula> {
         Formula left = mOperator.left.accept(this);
         Formula right = mOperator.right.accept(this);
         Formula current = MOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return mOperator;
         if (numOfAllowedWeakenings > 0) {
@@ -340,7 +340,7 @@ public class FormulaWeakening implements Visitor<Formula> {
         Formula left = rOperator.left.accept(this);
         Formula right = rOperator.right.accept(this);
         Formula current = ROperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return rOperator;
         if (numOfAllowedWeakenings > 0) {

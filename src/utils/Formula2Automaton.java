@@ -1,4 +1,4 @@
-package tlsf;
+package utils;
 
 import automata.fsa.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -32,7 +32,7 @@ import java.util.function.IntConsumer;
 
 import static com.google.common.base.Preconditions.checkState;
 
-public class FormulaToAutomaton<S> {
+public class Formula2Automaton<S> {
 
     //Map labels to ids
     public Map<String, String> labelIDs = new HashMap<>();
@@ -42,7 +42,7 @@ public class FormulaToAutomaton<S> {
     int base = 48;//start with char 0
     private Object2IntMap stateNumbers;
 
-    public FormulaToAutomaton() {
+    public Formula2Automaton() {
         alphabetSize = 0;
     }
 

@@ -9,9 +9,9 @@ import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
-import solvers.SolverUtils;
 import solvers.StrixHelper;
 import solvers.StrixHelper.RealizabilitySolverResult;
+import utils.SolverUtils;
 
 import java.io.IOException;
 

@@ -2,18 +2,17 @@ package owl.ltl.visitors;
 
 import main.Settings;
 import owl.ltl.*;
-import tlsf.Formula_Utils;
+import utils.FormulaUtils;
 
 import java.util.*;
 
 public class GeneralFormulaMutator implements Visitor<Formula> {
-    private final List<Literal> literalCache;
-    private final List<String> variables;
-    //	  private final int numOfInputs;
     private final boolean fixedVariables;
     private final int mutation_rate;
     private final boolean print_debug_info = false;
     public int numOfAllowedMutations;
+    private List<Literal> literalCache;
+    private List<String> variables;
 
     public GeneralFormulaMutator(List<String> literals, int mutation_rate, int max_num_of_mutations_to_apply) {
         ListIterator<String> literalIterator = literals.listIterator();
@@ -99,7 +98,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
     public Formula visit(XOperator xOperator) {
         Formula operand = xOperator.operand.accept(this);
         Formula current = XOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return xOperator;
         if (numOfAllowedMutations > 0) {
@@ -168,7 +167,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
     public Formula visit(FOperator fOperator) {
         Formula operand = fOperator.operand.accept(this);
         Formula current = FOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return fOperator;
         if (numOfAllowedMutations > 0) {
@@ -239,7 +238,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
     public Formula visit(GOperator gOperator) {
         Formula operand = gOperator.operand.accept(this);
         Formula current = GOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return gOperator;
         if (numOfAllowedMutations > 0) {
@@ -308,7 +307,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
     @Override
     public Formula visit(Conjunction conjunction) {
         Formula current = Conjunction.of(conjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return conjunction;
         if (numOfAllowedMutations > 0) {
@@ -332,7 +331,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
                 } else if (random == 1) {
                     if (!current.children().isEmpty()) {
                         int to_be_removed = Settings.RANDOM_GENERATOR.nextInt(current.children().size());
-                        List<Formula> new_set_children = new LinkedList<Formula>();
+                        List<Formula> new_set_children = new LinkedList<>();
                         Iterator<Formula> it = current.children().iterator();
                         int i = 0;
                         while (it.hasNext()) {
@@ -355,7 +354,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
                     else if (numOfTO < 2) {
                         Iterator<Formula> it = current.children().iterator();
                         Formula left = it.next();
-                        List<Formula> rightChild = new LinkedList<Formula>();
+                        List<Formula> rightChild = new LinkedList<>();
 
                         while (it.hasNext()) {
                             Formula c = it.next();
@@ -389,7 +388,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
     @Override
     public Formula visit(Disjunction disjunction) {
         Formula current = Disjunction.of(disjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return disjunction;
         if (numOfAllowedMutations > 0) {
@@ -413,7 +412,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
                 } else if (random == 1) {
                     if (!current.children().isEmpty()) {
                         int to_be_removed = Settings.RANDOM_GENERATOR.nextInt(current.children().size());
-                        List<Formula> new_set_children = new LinkedList<Formula>();
+                        List<Formula> new_set_children = new LinkedList<>();
                         Iterator<Formula> it = current.children().iterator();
                         int i = 0;
                         while (it.hasNext()) {
@@ -431,7 +430,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
                     } else if (numOfTO < 2) {
                         Iterator<Formula> it = current.children().iterator();
                         Formula left = it.next();
-                        List<Formula> rightChild = new LinkedList<Formula>();
+                        List<Formula> rightChild = new LinkedList<>();
 
                         while (it.hasNext()) {
                             Formula c = it.next();
@@ -467,7 +466,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
         Formula left = uOperator.left.accept(this);
         Formula right = uOperator.right.accept(this);
         Formula current = UOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return uOperator;
         if (numOfAllowedMutations > 0) {
@@ -525,7 +524,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
         Formula left = wOperator.left.accept(this);
         Formula right = wOperator.right.accept(this);
         Formula current = WOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return wOperator;
         if (numOfAllowedMutations > 0) {
@@ -583,7 +582,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
         Formula left = mOperator.left.accept(this);
         Formula right = mOperator.right.accept(this);
         Formula current = MOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return mOperator;
         if (numOfAllowedMutations > 0) {
@@ -641,7 +640,7 @@ public class GeneralFormulaMutator implements Visitor<Formula> {
         Formula left = rOperator.left.accept(this);
         Formula right = rOperator.right.accept(this);
         Formula current = ROperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return rOperator;
         if (numOfAllowedMutations > 0) {

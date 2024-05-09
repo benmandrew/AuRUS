@@ -1,4 +1,4 @@
-package tlsf;
+package utils;
 
 import org.junit.jupiter.api.Test;
 import owl.ltl.LabelledFormula;
@@ -18,7 +18,7 @@ public class FormulaToAutomatonTest {
 //        LabelledFormula f0 = LtlParser.parse("(G(G!p4||!p0||!p1)&&((GFp3&&GFp2&&GFp1&&GFp0) <-> GFp4)&&G(G!p4||!p0||!p2)&&G(G!p4||!p1||!p2)&&G(!p3||G!p4||!p1)&&G(!p3||G!p4||!p2)&&G(!p3||G!p4||!p0))");
         LabelledFormula f0 = LtlParser.parse("G F (a && (b))", vars);
         System.out.println(f0);
-        FormulaToAutomaton translator = new FormulaToAutomaton();
+        Formula2Automaton translator = new Formula2Automaton();
         translator.generateLabels(vars);
         automata.Automaton dfa = translator.formulaToDfa(f0);
         System.out.println(dfa);
@@ -27,11 +27,11 @@ public class FormulaToAutomatonTest {
     @Test
     public void testAutomataExamples() throws IOException, InterruptedException {
         String filename = "examples/firefighting.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         List<String> vars = tlsf.variables();
         LabelledFormula f0 = tlsf.toFormula();
         System.out.println(f0);
-        FormulaToAutomaton translator = new FormulaToAutomaton();
+        Formula2Automaton translator = new Formula2Automaton();
         translator.generateLabels(vars);
         automata.Automaton dfa = translator.formulaToDfa(f0);
         System.out.println(dfa);

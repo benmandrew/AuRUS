@@ -8,8 +8,8 @@ import owl.ltl.visitors.FormulaStrengthening;
 import owl.ltl.visitors.FormulaWeakening;
 import owl.ltl.visitors.GeneralFormulaMutator;
 import owl.ltl.visitors.SubformulaReplacer;
-import tlsf.Formula_Utils;
-import tlsf.TLSF_Utils;
+import utils.FormulaUtils;
+import utils.TlsfUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -18,11 +18,11 @@ public class SpecificationMutator {
 
     public static Tlsf mutate(Tlsf spec) {
         //create empty specification
-        Tlsf new_spec = TLSF_Utils.fromSpec(spec);
+        Tlsf new_spec = TlsfUtils.fromSpec(spec);
         int random = Settings.RANDOM_GENERATOR.nextInt(100);
         if (random >= Settings.GA_GUARANTEES_PREFERENCE_FACTOR) {
             // mutate assumptions
-            List<Formula> assumptions = Formula_Utils.splitConjunction(spec.assume());
+            List<Formula> assumptions = FormulaUtils.splitConjunction(spec.assume());
             if (assumptions.isEmpty())
                 assumptions.add(BooleanConstant.TRUE);
             int index_to_mutate = Settings.RANDOM_GENERATOR.nextInt(assumptions.size());
@@ -33,7 +33,7 @@ public class SpecificationMutator {
                 vars = vars.subList(0, spec.numberOfInputs());
 
             //select subformula to mutate
-            Set<Formula> subformulas = Formula_Utils.subformulas(assumption_to_mutate);
+            Set<Formula> subformulas = FormulaUtils.subformulas(assumption_to_mutate);
             int n = subformulas.size();
             Formula to_mutate = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
 
@@ -57,17 +57,17 @@ public class SpecificationMutator {
             if (new_assumption != BooleanConstant.FALSE) {
                 assumptions.remove(index_to_mutate);
                 assumptions.add(index_to_mutate, new_assumption);
-                new_spec = TLSF_Utils.change_assume(new_spec, assumptions);
+                new_spec = TlsfUtils.change_assume(new_spec, assumptions);
             }
         } else {
-            List<Formula> guarantees = Formula_Utils.splitConjunctions(spec.guarantee());
+            List<Formula> guarantees = FormulaUtils.splitConjunctions(spec.guarantee());
             if (guarantees.isEmpty())
                 guarantees.add(BooleanConstant.TRUE);
             int index_to_mutate = Settings.RANDOM_GENERATOR.nextInt(guarantees.size());
             Formula guarantee_to_mutate = guarantees.get(index_to_mutate);
 
             //select subformula to mutate
-            Set<Formula> subformulas = Formula_Utils.subformulas(guarantee_to_mutate);
+            Set<Formula> subformulas = FormulaUtils.subformulas(guarantee_to_mutate);
             int n = subformulas.size();
             Formula to_mutate = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
 
@@ -91,14 +91,14 @@ public class SpecificationMutator {
             if (new_guarantee != BooleanConstant.FALSE) {
                 guarantees.remove(index_to_mutate);
                 guarantees.add(index_to_mutate, new_guarantee);
-                new_spec = TLSF_Utils.change_guarantees(new_spec, guarantees);
+                new_spec = TlsfUtils.change_guarantees(new_spec, guarantees);
             }
         }
         return new_spec;
     }
 
     public static Formula applyGeneralMutation(Formula f, List<String> variables) {
-        int n = Formula_Utils.formulaSize(f);
+        int n = FormulaUtils.formulaSize(f);
         int MR = Math.max(1, ((100 - Settings.GA_GENE_MUTATION_RATE) / 100) * n);
         int num_of_mut = n;
         if (Settings.GA_GENE_NUM_OF_MUTATIONS > 0)
@@ -108,7 +108,7 @@ public class SpecificationMutator {
     }
 
     public static Formula weakenFormula(Formula f, List<String> variables) {
-        int n = Formula_Utils.formulaSize(f);
+        int n = FormulaUtils.formulaSize(f);
         int MR = Math.max(1, ((100 - Settings.GA_GENE_MUTATION_RATE) / 100) * n);
         int num_of_mut = n;
         if (Settings.GA_GENE_NUM_OF_MUTATIONS > 0)
@@ -118,7 +118,7 @@ public class SpecificationMutator {
     }
 
     public static Formula strengthenFormula(Formula f, List<String> variables) {
-        int n = Formula_Utils.formulaSize(f);
+        int n = FormulaUtils.formulaSize(f);
         int MR = Math.max(1, ((100 - Settings.GA_GENE_MUTATION_RATE) / 100) * n);
         int num_of_mut = n;
         if (Settings.GA_GENE_NUM_OF_MUTATIONS > 0)

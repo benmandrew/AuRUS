@@ -16,7 +16,7 @@ import owl.ltl.LabelledFormula;
 import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
-import tlsf.FormulaToAutomaton;
+import utils.Formula2Automaton;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class StrongSATSolver<S> {
         Automaton<S, ?> input_automaton = buildInputAutomata(automaton, new ArrayList<>(formula.player1Variables()), formula.variables());
         System.out.println(HoaPrinter.toString(input_automaton, EnumSet.of(SIMPLE_TRANSITION_LABELS)));
         System.out.println("Checking...");
-        FormulaToAutomaton translatorLTLtoRE = new FormulaToAutomaton();
+        Formula2Automaton translatorLTLtoRE = new Formula2Automaton();
         translatorLTLtoRE.generateLabels(formula.variables());
         System.out.println("Determinizing...");
         automata.Automaton dfa = translatorLTLtoRE.telaToDfa(input_automaton);

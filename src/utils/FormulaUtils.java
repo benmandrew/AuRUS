@@ -1,4 +1,4 @@
-package tlsf;
+package utils;
 
 import main.Settings;
 import owl.ltl.*;
@@ -6,7 +6,7 @@ import owl.ltl.visitors.SubformulaReplacer;
 
 import java.util.*;
 
-public class Formula_Utils {
+public class FormulaUtils {
 
     public static List<LabelledFormula> subformulas(LabelledFormula f) {//, List<String> variables) {
         List<LabelledFormula> s = new LinkedList<>();

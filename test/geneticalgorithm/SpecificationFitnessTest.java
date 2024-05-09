@@ -4,7 +4,7 @@ import com.lagodiuk.ga.Fitness;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -93,7 +93,7 @@ class SpecificationFitnessTest {
 
     @Test
     void test() throws IOException, InterruptedException {
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(TLSF2);
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(TLSF2);
         SpecificationChromosome chromosome = new SpecificationChromosome(tlsf);
         Fitness<SpecificationChromosome, Double> fitnessFunc = new SpecificationFitness();
         System.out.println(fitnessFunc.calculate(chromosome));
@@ -101,7 +101,7 @@ class SpecificationFitnessTest {
 
     @Test
     void test2() throws IOException, InterruptedException {
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(TLSF3);
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(TLSF3);
         SpecificationChromosome chromosome = new SpecificationChromosome(tlsf);
         Fitness<SpecificationChromosome, Double> fitnessFunc = new SpecificationFitness();
         System.out.println(fitnessFunc.calculate(chromosome));

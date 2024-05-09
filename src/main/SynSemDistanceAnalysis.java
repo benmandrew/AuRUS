@@ -2,7 +2,7 @@ package main;
 
 import geneticalgorithm.AutomataBasedModelCountingSpecificationFitness;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -32,7 +32,7 @@ public class SynSemDistanceAnalysis {
             for (String arg : args) {
                 if (arg.startsWith("-o=")) {
                     String orig_name = arg.replace("-o=", "");
-                    original = TLSF_Utils.toBasicTLSF(new File(orig_name));
+                    original = TlsfUtils.toBasicTLSF(new File(orig_name));
                 } else if (arg.startsWith("-out=")) {
                     out_name = arg.replace("-out=", "");
                 }
@@ -60,7 +60,7 @@ public class SynSemDistanceAnalysis {
                     .filter(f -> f.endsWith(".tlsf") && !f.endsWith("_basic.tlsf") && !f.endsWith("Spec.tlsf")).collect(Collectors.toList());
             for (String filename : specifications) {
                 System.out.println(filename);
-                Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                 solutions.add(tlsf);
                 //read the fitness from file
                 FileReader f = new FileReader(filename);

@@ -1,9 +1,10 @@
-package tlsf;
+package modelcounter;
 
 import org.junit.jupiter.api.Test;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.tlsf.Tlsf;
+import utils.TlsfUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,7 @@ class CountREModelsTest {
     @Test
     public void testMinepump() throws IOException, InterruptedException {
         String filename = "examples/minepump.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         List<String> vars = tlsf.variables();
         LabelledFormula f0 = tlsf.toFormula();
         List<LabelledFormula> list = new LinkedList();

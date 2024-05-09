@@ -6,7 +6,7 @@ import owl.ltl.Formula;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.rewriter.SyntacticSimplifier;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class SpecificationChromosome implements Chromosome<SpecificationChromoso
     }
 
     public SpecificationChromosome(Tlsf spec) {
-        this.spec = TlsfParser.parse(TLSF_Utils.toTLSF(spec));
+        this.spec = TlsfParser.parse(TlsfUtils.toTLSF(spec));
         this.status = SPEC_STATUS.UNKNOWN;
     }
 

@@ -1,5 +1,6 @@
 package main;
 
+import modelcounter.CountREModels;
 import modelcounter.CountRltlConv;
 import modelcounter.EmersonLeiAutomatonBasedModelCounting;
 import owl.ltl.*;
@@ -8,8 +9,7 @@ import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SyntacticSimplifier;
 import owl.ltl.tlsf.Tlsf;
 import solvers.PreciseLTLModelCounter;
-import tlsf.CountREModels;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -47,7 +47,7 @@ public class ModelCountingRanking {
             System.out.println("Use ./modelcounter.sh [-b=pathToFile] [-k=bound | -vars=a,b,c | -no-precise]");
             return;
         } else if (filepath.endsWith(".tlsf")) {
-            Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filepath));
+            Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filepath));
             formulas.add(tlsf.toFormula().formula());
             vars = tlsf.variables();
         } else if (filepath.endsWith(".list")) {
@@ -59,7 +59,7 @@ public class ModelCountingRanking {
             while (line != null) {
 
                 if (!line.startsWith("--") && line.endsWith(".tlsf")) {
-                    Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(line));
+                    Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(line));
                     formulas.add(tlsf.toFormula().formula());
                     numOfVars = Math.max(numOfVars, tlsf.variables().size());
                 }

@@ -8,8 +8,8 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.tlsf.Tlsf;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
-import tlsf.Formula_Utils;
-import tlsf.TLSF_Utils;
+import utils.FormulaUtils;
+import utils.TlsfUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +32,7 @@ class FormulaMutarorTest {
         List<String> vars = List.of("grant0", "grant1");
         LabelledFormula f = LtlParser.parse("(Z grant0)", vars);
         System.out.println("After replace subformula! " + f.formula());
-        FormulaMutator visitor = new FormulaMutator(vars, Formula_Utils.formulaSize(f.formula()), 1);
+        FormulaMutator visitor = new FormulaMutator(vars, FormulaUtils.formulaSize(f.formula()), 1);
         Formula m = f.formula().accept(visitor);
         System.out.println("After replace subformula! " + m);
 
@@ -42,8 +42,8 @@ class FormulaMutarorTest {
     void testMutate0() throws IOException {
         List<String> vars = List.of("grant0", "grant1", "grant2");
         LabelledFormula f = LtlParser.parse("G (grant0 && grant1 | grant1)", vars);
-        System.out.println("After replace subformula! " + f.formula() + " mutation rate=" + Formula_Utils.formulaSize(f.formula()));
-        FormulaMutator visitor = new FormulaMutator(vars, Formula_Utils.formulaSize(f.formula()), 1);
+        System.out.println("After replace subformula! " + f.formula() + " mutation rate=" + FormulaUtils.formulaSize(f.formula()));
+        FormulaMutator visitor = new FormulaMutator(vars, FormulaUtils.formulaSize(f.formula()), 1);
         Formula m = f.formula().accept(visitor);
         System.out.println("After weaken subformula! " + m);
     }
@@ -51,11 +51,11 @@ class FormulaMutarorTest {
     @Test
     void testMinePump() throws IOException, InterruptedException {
         String filename = "examples/minepump-4.tlsf";
-        Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+        Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
         List<String> vars = tlsf.variables();
         Formula f = tlsf.toFormula().formula();
-//		System.out.println("After replace subformula! "+ tlsf.toFormula() + " mutation rate=" + Formula_Utils.formulaSize(f));
-        int size = Formula_Utils.formulaSize(f);
+//		System.out.println("After replace subformula! "+ tlsf.toFormula() + " mutation rate=" + FormulaUtils.formulaSize(f));
+        int size = FormulaUtils.formulaSize(f);
         int N = 20;
         System.out.print("\"-ltl=" + tlsf.toFormula() + "\" ");
         int i = 0;
@@ -83,8 +83,8 @@ class FormulaMutarorTest {
         List<String> vars = List.of("a", "b", "c");
         Formula f = LtlParser.syntax("G (a -> b)", vars);
 
-//		System.out.println("After replace subformula! "+ tlsf.toFormula() + " mutation rate=" + Formula_Utils.formulaSize(f));
-        int size = Formula_Utils.formulaSize(f);
+//		System.out.println("After replace subformula! "+ tlsf.toFormula() + " mutation rate=" + FormulaUtils.formulaSize(f));
+        int size = FormulaUtils.formulaSize(f);
         int N = 10;
         System.out.print("\"-ltl=G (a -> b)\" ");
         int i = 0;

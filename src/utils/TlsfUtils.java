@@ -1,4 +1,4 @@
-package tlsf;
+package utils;
 
 import main.Settings;
 import owl.ltl.*;
@@ -8,14 +8,13 @@ import owl.ltl.spectra.Spectra;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.tlsf.Tlsf.Semantics;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
-import solvers.SolverUtils;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TLSF_Utils {
+public class TlsfUtils {
     public static String TLSF_EXAMPLE_SPEC = "INFO {\n"
             + "  TITLE:       \"TLSF - Empty Specification\"\n"
             + "  DESCRIPTION: \"Empty Specification\"\n"
@@ -101,7 +100,7 @@ public class TLSF_Utils {
 //		System.out.println(hasSyfcoSintax(spec) + "and "+isBasic(spec) + "File: " + spec.getPath() );
         if (spec.getAbsolutePath().endsWith("spectra")) {
             Spectra spectra = SpectraParser.parse(new FileReader(spec));
-            Tlsf tlsf = TLSF_Utils.fromSpectra(spectra);
+            Tlsf tlsf = TlsfUtils.fromSpectra(spectra);
             String tlsf_name = spec.getAbsolutePath().replace(".spectra", ".tlsf");
             FileWriter out = new FileWriter(tlsf_name);
             out.write(adaptTLSFSpec(tlsf));
@@ -811,7 +810,7 @@ public class TLSF_Utils {
 
         if (spec.assume().compareTo(BooleanConstant.TRUE) != 0) {
             new_tlsf_spec.append("  ASSUMPTIONS {\n");
-            for (Formula as : Formula_Utils.splitConjunction(spec.assume())) {
+            for (Formula as : FormulaUtils.splitConjunction(spec.assume())) {
                 new_tlsf_spec.append("    ").append(SolverUtils.toSolverSyntax(LabelledFormula.of(as, spec.variables()))).append(";\n");
             }
             new_tlsf_spec.append("  }\n" + '\n');
@@ -860,7 +859,7 @@ public class TLSF_Utils {
             for (Formula f : spec.thetaE()) {
                 if (hasGFPattern(f))
                     additionalAssumptions.add(f);
-                else if (Formula_Utils.numOfTemporalOperators(f) > 0)
+                else if (FormulaUtils.numOfTemporalOperators(f) > 0)
                     additionalAssumptions.add(f);
                 else
                     lst.add(f);
@@ -872,7 +871,7 @@ public class TLSF_Utils {
             for (Formula f : spec.thetaS()) {
                 if (hasGFPattern(f))
                     additionalGuarantee.add(f);
-                else if (Formula_Utils.numOfTemporalOperators(f) > 0)
+                else if (FormulaUtils.numOfTemporalOperators(f) > 0)
                     additionalGuarantee.add(f);
                 else
                     lst.add(f);
@@ -899,7 +898,7 @@ public class TLSF_Utils {
         if (!additionalAssumptions.isEmpty()) {
             new_tlsf_spec.append("  ASSUMPTIONS {\n");
             for (Formula a : additionalAssumptions) {
-                if (Formula_Utils.numOfTemporalOperators(a) > 0)
+                if (FormulaUtils.numOfTemporalOperators(a) > 0)
                     new_tlsf_spec.append("    ").append(LabelledFormula.of(a, spec.variables())).append(";\n");
                 else
                     new_tlsf_spec.append("    ").append(LabelledFormula.of(GOperator.of(FOperator.of(a)), spec.variables())).append(";\n");
@@ -911,7 +910,7 @@ public class TLSF_Utils {
             new_tlsf_spec.append("  GUARANTEES {\n");
 
             for (Formula f : additionalGuarantee) {
-                if (Formula_Utils.numOfTemporalOperators(f) > 0)
+                if (FormulaUtils.numOfTemporalOperators(f) > 0)
                     new_tlsf_spec.append("    ").append(LabelledFormula.of(f, spec.variables())).append(";\n");
                 else
                     new_tlsf_spec.append("    ").append(LabelledFormula.of(GOperator.of(FOperator.of(f)), spec.variables())).append(";\n");
@@ -937,7 +936,7 @@ public class TLSF_Utils {
 
         // set domain properties
         Formula domain_properties = Conjunction.of(tlsf.initially(), tlsf.require(), tlsf.assume());
-        for (Formula domainP : Formula_Utils.splitConjunction(domain_properties)) {
+        for (Formula domainP : FormulaUtils.splitConjunction(domain_properties)) {
             if (hasGFPattern(domainP))
                 spectra_spec.append("assumption\n GF ").append(toSpectraFormat(LabelledFormula.of(getFormulaWOGFpattern(domainP), tlsf.variables()), tlsf.variables())).append(";\n");
             else

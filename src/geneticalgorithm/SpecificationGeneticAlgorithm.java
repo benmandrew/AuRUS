@@ -10,8 +10,8 @@ import owl.ltl.visitors.GeneralFormulaMutator;
 import owl.ltl.visitors.SubformulaReplacer;
 import solvers.StrixHelper;
 import solvers.StrixHelper.RealizabilitySolverResult;
-import tlsf.Formula_Utils;
-import tlsf.TLSF_Utils;
+import utils.FormulaUtils;
+import utils.TlsfUtils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -79,7 +79,7 @@ public class SpecificationGeneticAlgorithm {
             SpecificationChromosome s = solutions.get(i);
             System.out.println();
             System.out.printf("Solution N: %s\tFitness: %.2f%n", i, s.fitness);
-            System.out.println(TLSF_Utils.adaptTLSFSpec(s.spec));
+            System.out.println(TlsfUtils.adaptTLSFSpec(s.spec));
         }
         finalExecutionTime = Instant.now();
         System.out.println(print_execution_time());
@@ -121,7 +121,7 @@ public class SpecificationGeneticAlgorithm {
             SpecificationChromosome s = solutions.get(i);
             System.out.println();
             System.out.printf("Solution N: %s\tFitness: %.2f%n", i, s.fitness);
-            System.out.println(TLSF_Utils.adaptTLSFSpec(s.spec));
+            System.out.println(TlsfUtils.adaptTLSFSpec(s.spec));
         }
         finalExecutionTime = Instant.now();
         System.out.println(print_execution_time());
@@ -157,9 +157,9 @@ public class SpecificationGeneticAlgorithm {
                 if (Settings.RANDOM_GENERATOR.nextBoolean())
                     input = input.not();
                 Formula new_assumption = GOperator.of(FOperator.of(input));
-                List<Formula> assumes = Formula_Utils.splitConjunction(spec.assume());
+                List<Formula> assumes = FormulaUtils.splitConjunction(spec.assume());
                 assumes.add(new_assumption);
-                Tlsf input_spec = TLSF_Utils.change_assume(spec, assumes);
+                Tlsf input_spec = TlsfUtils.change_assume(spec, assumes);
                 population.addChromosome(new SpecificationChromosome(input_spec));
             }
             //add simple assumptions: //G(!(i_1 & i_2))
@@ -169,43 +169,43 @@ public class SpecificationGeneticAlgorithm {
             }
 
             Formula new_assumption = GOperator.of(Conjunction.of(inputs).not());
-            List<Formula> assumes = Formula_Utils.splitConjunction(spec.assume());
+            List<Formula> assumes = FormulaUtils.splitConjunction(spec.assume());
             assumes.add(new_assumption);
-            Tlsf input_spec = TLSF_Utils.change_assume(spec, assumes);
+            Tlsf input_spec = TlsfUtils.change_assume(spec, assumes);
             population.addChromosome(new SpecificationChromosome(input_spec));
 
             //add simple assumptions: //GF (i_1 & i_2)
             new_assumption = GOperator.of(FOperator.of(Conjunction.of(inputs)));
-            assumes = Formula_Utils.splitConjunction(spec.assume());
+            assumes = FormulaUtils.splitConjunction(spec.assume());
             assumes.add(new_assumption);
-            input_spec = TLSF_Utils.change_assume(spec, assumes);
+            input_spec = TlsfUtils.change_assume(spec, assumes);
             population.addChromosome(new SpecificationChromosome(input_spec));
         }
 
         //combine or replace sub formulas by one input
         if (Settings.GA_GUARANTEES_PREFERENCE_FACTOR < 100) {
-            for (Formula as : Formula_Utils.splitConjunction(spec.assume())) {
+            for (Formula as : FormulaUtils.splitConjunction(spec.assume())) {
                 int i = Settings.RANDOM_GENERATOR.nextInt(spec.numberOfInputs());
                 Literal input = Literal.of(i);
                 if (Settings.RANDOM_GENERATOR.nextBoolean())
                     input = input.not();
                 Formula new_assumption;
                 if (Settings.RANDOM_GENERATOR.nextBoolean())
-                    new_assumption = Formula_Utils.replaceSubformula(as, input);
+                    new_assumption = FormulaUtils.replaceSubformula(as, input);
                 else
-                    new_assumption = Formula_Utils.combineSubformula(as, input);
-                List<Formula> assumes = Formula_Utils.splitConjunction(spec.assume());
+                    new_assumption = FormulaUtils.combineSubformula(as, input);
+                List<Formula> assumes = FormulaUtils.splitConjunction(spec.assume());
                 assumes.remove(as);
                 assumes.add(new_assumption);
-                Tlsf input_spec = TLSF_Utils.change_assume(spec, assumes);
+                Tlsf input_spec = TlsfUtils.change_assume(spec, assumes);
                 population.addChromosome(new SpecificationChromosome(input_spec));
             }
         }
 
         // weaken some sub formula
         if (Settings.GA_GUARANTEES_PREFERENCE_FACTOR < 100) {
-            for (Formula as : Formula_Utils.splitConjunction(spec.assume())) {
-                Set<Formula> subformulas = Formula_Utils.subformulas(as);
+            for (Formula as : FormulaUtils.splitConjunction(spec.assume())) {
+                Set<Formula> subformulas = FormulaUtils.subformulas(as);
                 int n = subformulas.size();
                 Formula to_replace = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
                 List<String> variables = spec.variables();
@@ -215,10 +215,10 @@ public class SpecificationGeneticAlgorithm {
                 Formula mutated_subformula = to_replace.nnf().accept(formVisitor);
                 SubformulaReplacer visitor = new SubformulaReplacer(to_replace, mutated_subformula);
                 Formula mutated_assumption = as.accept(visitor);
-                List<Formula> assumes = Formula_Utils.splitConjunction(spec.assume());
+                List<Formula> assumes = FormulaUtils.splitConjunction(spec.assume());
                 assumes.remove(as);
                 assumes.add(mutated_assumption);
-                Tlsf input_spec = TLSF_Utils.change_assume(spec, assumes);
+                Tlsf input_spec = TlsfUtils.change_assume(spec, assumes);
                 population.addChromosome(new SpecificationChromosome(input_spec));
             }
         }
@@ -231,20 +231,20 @@ public class SpecificationGeneticAlgorithm {
                     output = output.not();
                 Formula new_guarantee;
                 if (Settings.RANDOM_GENERATOR.nextBoolean())
-                    new_guarantee = Formula_Utils.replaceSubformula(g, output);
+                    new_guarantee = FormulaUtils.replaceSubformula(g, output);
                 else
-                    new_guarantee = Formula_Utils.combineSubformula(g, output);
+                    new_guarantee = FormulaUtils.combineSubformula(g, output);
                 List<Formula> guarantees = new LinkedList<>(spec.guarantee());
                 guarantees.remove(g);
                 guarantees.add(new_guarantee);
-                Tlsf input_spec = TLSF_Utils.change_guarantees(spec, guarantees);
+                Tlsf input_spec = TlsfUtils.change_guarantees(spec, guarantees);
                 population.addChromosome(new SpecificationChromosome(input_spec));
             }
         }
 
         if (Settings.GA_GUARANTEES_PREFERENCE_FACTOR > 0) {
             for (Formula g : spec.guarantee()) {
-                Set<Formula> subformulas = Formula_Utils.subformulas(g);
+                Set<Formula> subformulas = FormulaUtils.subformulas(g);
                 int n = subformulas.size();
                 Formula to_replace = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
                 List<String> variables = spec.variables();
@@ -255,7 +255,7 @@ public class SpecificationGeneticAlgorithm {
                 List<Formula> guarantees = new LinkedList<>(spec.guarantee());
                 guarantees.remove(g);
                 guarantees.add(mutated_guarantee);
-                Tlsf input_spec = TLSF_Utils.change_guarantees(spec, guarantees);
+                Tlsf input_spec = TlsfUtils.change_guarantees(spec, guarantees);
                 population.addChromosome(new SpecificationChromosome(input_spec));
             }
         }
@@ -274,7 +274,7 @@ public class SpecificationGeneticAlgorithm {
             int iteration = ga1.getIteration();
             if (bestFit > Settings.MAX_FITNESS()) {
                 System.out.printf("WRONG Fitness: %.2f%n", best.fitness);
-                System.out.println(TLSF_Utils.adaptTLSFSpec(best.spec));
+                System.out.println(TlsfUtils.adaptTLSFSpec(best.spec));
                 bestSolutions.add(best);
                 ga1.terminate();
             }

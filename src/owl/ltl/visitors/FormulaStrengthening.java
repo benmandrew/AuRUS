@@ -3,7 +3,7 @@ package owl.ltl.visitors;
 import main.Settings;
 import owl.ltl.*;
 import owl.ltl.rewriter.NormalForms;
-import tlsf.Formula_Utils;
+import utils.FormulaUtils;
 
 import java.util.*;
 
@@ -11,9 +11,9 @@ public class FormulaStrengthening implements Visitor<Formula> {
     private final List<Literal> literalCache;
     private final List<String> variables;
     private final boolean fixedVariables;
-    private int strengthening_rate;
+    private final int strengthening_rate;
+    private final boolean print_debug_info = false;
     private int numOfAllowedStrengthenings;
-    private boolean print_debug_info = false;
 
     public FormulaStrengthening(List<String> literals, int strengthening_rate, int num_of_strengthening_to_apply) {
         ListIterator<String> literalIterator = literals.listIterator();
@@ -93,7 +93,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
     public Formula visit(XOperator xOperator) {
         Formula operand = xOperator.operand.accept(this);
         Formula current = XOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return xOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -122,7 +122,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
     public Formula visit(FOperator fOperator) {
         Formula operand = fOperator.operand.accept(this);
         Formula current = FOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return fOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -170,7 +170,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
     public Formula visit(GOperator gOperator) {
         Formula operand = gOperator.operand.accept(this);
         Formula current = GOperator.of(operand);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return gOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -207,7 +207,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
     @Override
     public Formula visit(Conjunction conjunction) {
         Formula current = Conjunction.of(conjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return conjunction;
         if (numOfAllowedStrengthenings > 0) {
@@ -236,7 +236,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
     @Override
     public Formula visit(Disjunction disjunction) {
         Formula current = Disjunction.of(disjunction.children.stream().map(x -> x.accept(this)));
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return disjunction;
         if (numOfAllowedStrengthenings > 0) {
@@ -279,7 +279,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
         Formula left = uOperator.left.accept(this);
         Formula right = uOperator.right.accept(this);
         Formula current = UOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return uOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -308,7 +308,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
         Formula left = wOperator.left.accept(this);
         Formula right = wOperator.right.accept(this);
         Formula current = WOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return wOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -338,7 +338,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
         Formula left = mOperator.left.accept(this);
         Formula right = mOperator.right.accept(this);
         Formula current = MOperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return mOperator;
         if (numOfAllowedStrengthenings > 0) {
@@ -368,7 +368,7 @@ public class FormulaStrengthening implements Visitor<Formula> {
         Formula left = rOperator.left.accept(this);
         Formula right = rOperator.right.accept(this);
         Formula current = ROperator.of(left, right);
-        int numOfTO = Formula_Utils.numOfTemporalOperators(current);
+        int numOfTO = FormulaUtils.numOfTemporalOperators(current);
         if (numOfTO > 2)
             return rOperator;
         if (numOfAllowedStrengthenings > 0) {

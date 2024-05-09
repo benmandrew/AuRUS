@@ -7,8 +7,8 @@ import owl.ltl.Formula;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
-import solvers.SolverUtils;
-import tlsf.TLSF_Utils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,11 +40,11 @@ public class GenuineSolutionsAnalysis {
         for (String arg : args) {
             if (arg.startsWith("-ref=")) {
                 String ref_name = arg.replace("-ref=", "");
-                Tlsf ref_sol = TLSF_Utils.toBasicTLSF(new File(ref_name));
+                Tlsf ref_sol = TlsfUtils.toBasicTLSF(new File(ref_name));
                 genuineSolutions.add(ref_sol);
             } else if (arg.startsWith("-o=")) {
                 String orig_name = arg.replace("-o=", "");
-                original = TLSF_Utils.toBasicTLSF(new File(orig_name));
+                original = TlsfUtils.toBasicTLSF(new File(orig_name));
             } else if (arg.startsWith("-noFit")) {
                 computeFitness = false;
             } else {
@@ -54,7 +54,7 @@ public class GenuineSolutionsAnalysis {
                         .filter(f -> f.endsWith(".tlsf") && !f.endsWith("_basic.tlsf")).collect(Collectors.toList());
                 for (String filename : specifications) {
                     System.out.println(filename);
-                    Tlsf tlsf = TLSF_Utils.toBasicTLSF(new File(filename));
+                    Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                     solutions.add(tlsf);
                     //read the fitness from file
                     if (!computeFitness) {

@@ -4,7 +4,7 @@ import geneticalgorithm.SpecificationChromosome.SPEC_STATUS;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.TlsfParser;
 import owl.ltl.tlsf.Tlsf;
-import tlsf.TLSF_Utils;
+import utils.TlsfUtils;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -85,41 +85,41 @@ class SpecificationMergerTest {
     @Test
     void testMerge() {
         List<Tlsf> mergeRes = SpecificationMerger.merge(TlsfParser.parse(TLSF1), TlsfParser.parse(TLSF2));
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
     }
 
     @Test
     void testMergeLevel1() {
         List<Tlsf> mergeRes = SpecificationMerger.merge(TlsfParser.parse(TLSF1), TlsfParser.parse(TLSF2), SPEC_STATUS.UNKNOWN, SPEC_STATUS.UNKNOWN, 1);
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
     }
 
     @Test
     void testMergeLevel2() {
         List<Tlsf> mergeRes = SpecificationMerger.merge(TlsfParser.parse(TLSF1), TlsfParser.parse(TLSF2), SPEC_STATUS.CONTRADICTORY, SPEC_STATUS.GUARANTEES, 2);
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
     }
 
     @Test
     void testMergeLevel3() {
         List<Tlsf> mergeRes = SpecificationMerger.merge(TlsfParser.parse(TLSF1), TlsfParser.parse(TLSF2), SPEC_STATUS.ASSUMPTIONS, SPEC_STATUS.REALIZABLE, 3);
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
     }
 
     @Test
     void testMergeLevel32() {
         List<Tlsf> mergeRes = SpecificationMerger.merge(TlsfParser.parse(TLSF1), TlsfParser.parse(TLSF2), SPEC_STATUS.ASSUMPTIONS, SPEC_STATUS.GUARANTEES, 3);
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
-        assertTrue(!TLSF_Utils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF1)));
+        assertTrue(!TlsfUtils.equals(mergeRes.get(0), TlsfParser.parse(TLSF2)));
     }
 
     @Test
@@ -128,9 +128,9 @@ class SpecificationMergerTest {
         FileReader f = new FileReader(filename);
         Tlsf spec = TlsfParser.parse(f);
         Tlsf mutated_spec = SpecificationMutator.mutate(spec);
-        System.out.println(TLSF_Utils.toTLSF(mutated_spec));
+        System.out.println(TlsfUtils.toTLSF(mutated_spec));
         List<Tlsf> mergeRes = SpecificationMerger.merge(spec, mutated_spec);
-        System.out.println(TLSF_Utils.toTLSF(mergeRes.get(0)));
+        System.out.println(TlsfUtils.toTLSF(mergeRes.get(0)));
     }
 
 }

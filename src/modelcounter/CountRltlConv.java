@@ -1,7 +1,7 @@
 package modelcounter;
 
 import owl.ltl.LabelledFormula;
-import solvers.SolverUtils;
+import utils.SolverUtils;
 
 import java.io.*;
 import java.math.BigInteger;

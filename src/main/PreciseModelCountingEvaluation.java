@@ -1,5 +1,6 @@
 package main;
 
+import modelcounter.CountREModels;
 import modelcounter.CountRltlConv;
 import modelcounter.MatrixBigIntegerModelCounting;
 import owl.ltl.*;
@@ -7,7 +8,6 @@ import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SyntacticSimplifier;
 import solvers.PreciseLTLModelCounter;
-import tlsf.CountREModels;
 
 import java.io.*;
 import java.math.BigInteger;

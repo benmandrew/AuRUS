@@ -12,11 +12,11 @@ import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
 import solvers.LTLSolver.SolverResult;
 import solvers.PotentiallyRealizabilityChecker;
-import solvers.SolverUtils;
 import solvers.StrixHelper;
 import solvers.StrixHelper.RealizabilitySolverResult;
-import tlsf.Formula_Utils;
-import tlsf.TLSF_Utils;
+import utils.FormulaUtils;
+import utils.SolverUtils;
+import utils.TlsfUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -131,7 +131,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
 
         if (fitness > Settings.MAX_FITNESS()) {
             System.out.printf("BROKEN Fitness: %.2f%n", fitness);
-            System.out.println(TLSF_Utils.adaptTLSFSpec(chromosome.spec));
+            System.out.println(TlsfUtils.adaptTLSFSpec(chromosome.spec));
             throw new RuntimeException();
         }
 
@@ -299,8 +299,8 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
     }
 
     public double compute_syntactic_distance(Tlsf original, Tlsf refined) {
-        List<LabelledFormula> sub_original = Formula_Utils.subformulas(original.toFormula());
-        List<LabelledFormula> sub_refined = Formula_Utils.subformulas(refined.toFormula());
+        List<LabelledFormula> sub_original = FormulaUtils.subformulas(original.toFormula());
+        List<LabelledFormula> sub_refined = FormulaUtils.subformulas(refined.toFormula());
         Set<LabelledFormula> commonSubs = Sets.intersection(Sets.newHashSet(sub_original), Sets.newHashSet(sub_refined));
         double lost = ((double) commonSubs.size()) / ((double) sub_original.size());
         double won = ((double) commonSubs.size()) / ((double) sub_refined.size());
@@ -308,8 +308,8 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
     }
 
     public boolean somethingHasBeenRemoved(Tlsf original, Tlsf refined) {
-        boolean assumptionAdded = !Settings.allowAssumptionAddition && Formula_Utils.splitConjunction(original.assume()).size() < Formula_Utils.splitConjunction(refined.assume()).size();
-        boolean guaranteeRemoved = !Settings.allowGuaranteeRemoval && Formula_Utils.splitConjunctions(original.guarantee()).size() > Formula_Utils.splitConjunctions(refined.guarantee()).size();
+        boolean assumptionAdded = !Settings.allowAssumptionAddition && FormulaUtils.splitConjunction(original.assume()).size() < FormulaUtils.splitConjunction(refined.assume()).size();
+        boolean guaranteeRemoved = !Settings.allowGuaranteeRemoval && FormulaUtils.splitConjunctions(original.guarantee()).size() > FormulaUtils.splitConjunctions(refined.guarantee()).size();
         return assumptionAdded || guaranteeRemoved;
     }
 
