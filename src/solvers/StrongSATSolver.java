@@ -29,7 +29,7 @@ import static owl.automaton.output.HoaPrinter.HoaOption.SIMPLE_TRANSITION_LABELS
 public class StrongSATSolver<S> {
 
 
-    public <S> boolean isStrongSatisfiable(LabelledFormula formula) {
+    public boolean isStrongSatisfiable(LabelledFormula formula) {
         System.out.println("Parsing...");
         DelagBuilder translator = new DelagBuilder(DefaultEnvironment.standard());
         Automaton<S, EmersonLeiAcceptance> automaton = (Automaton<S, EmersonLeiAcceptance>) translator.apply(formula);
@@ -52,7 +52,7 @@ public class StrongSATSolver<S> {
 
     }
 
-    public <S> MutableAutomaton<S, ?> buildInputAutomata(Automaton<S, EmersonLeiAcceptance> automaton, List<String> inputVars, List<String> vars) {
+    public MutableAutomaton<S, ?> buildInputAutomata(Automaton<S, EmersonLeiAcceptance> automaton, List<String> inputVars, List<String> vars) {
         //create valuation factory
         Environment env = DefaultEnvironment.standard();
         FactorySupplier factorySupplier = env.factorySupplier();

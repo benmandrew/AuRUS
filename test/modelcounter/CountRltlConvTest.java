@@ -19,11 +19,11 @@ class CountRltlConvTest {
     @Test
     public void testSimple1() throws IOException, InterruptedException {
         List<String> vars = List.of("a", "b");
-        LabelledFormula f0 = LtlParser.parse("G F (!b) -> G F(a)", vars);
+        LabelledFormula f0 = LtlParser.parse("G ((!b) -> X (a))", vars);
 //        List<LabelledFormula> list = new LinkedList();
 //        list.add(f0);
         System.out.println(f0);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             CountRltlConv counter = new CountRltlConv();
             BigInteger result = counter.countPrefixes(f0, 5);
             System.out.println(result);

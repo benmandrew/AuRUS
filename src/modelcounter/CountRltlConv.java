@@ -30,6 +30,7 @@ public class CountRltlConv {
     }
 
     private BigInteger runCount(String ltl, int bound) throws IOException, InterruptedException {
+        System.out.println(ltl);
         String[] cmd = {"./modelcount-prefixes.sh", ltl, "" + bound};
         Process p = Runtime.getRuntime().exec(cmd);
         boolean timeout = false;

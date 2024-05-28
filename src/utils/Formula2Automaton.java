@@ -79,19 +79,19 @@ public class Formula2Automaton<S> {
         });
     }
 
-    public <S> automata.Automaton formulaToDfa(LabelledFormula formula) {
+    public automata.Automaton formulaToDfa(LabelledFormula formula) {
         var environment = DefaultEnvironment.standard();
         var translator = new LTL2DPAFunction(environment, LTL2DPAFunction.RECOMMENDED_SYMMETRIC_CONFIG);
         var automaton = (Automaton<S, ParityAcceptance>) translator.apply(formula);
         return PAtoDfa(automaton);
     }
 
-    private <S> int getStateId(@Nullable S state) {
+    private int getStateId(@Nullable S state) {
         checkState(state != null);
         return stateNumbers.computeIntIfAbsent(state, k -> stateNumbers.size());
     }
 
-    public <S> automata.Automaton nbaToDfa(Automaton<S, ? extends OmegaAcceptance> automaton) {
+    public automata.Automaton nbaToDfa(Automaton<S, ? extends OmegaAcceptance> automaton) {
 
         automata.Automaton fsa = new FiniteStateAutomaton();
         stateNumbers = new Object2IntOpenHashMap();
@@ -115,13 +115,10 @@ public class Formula2Automaton<S> {
         //get initial nodes
         for (S in : automaton.initialStates()) {
             //create and set initial state
-//            automata.State ais = fsa.createStateWithId(new Point(),getStateId(in));
             automata.State ais = ids.get(in);
             //initial node ids
             FSATransition t = new FSATransition(is, ais, FSAToRegularExpressionConverter.LAMBDA);
             fsa.addTransition(t);
-//            ids.put(in.toString(), ais.getID());
-//            System.out.println("initial: "+ in.toString());
         }
 
         for (S from : automaton.states()) {
@@ -132,17 +129,11 @@ public class Formula2Automaton<S> {
                     valuationSet.forEach(bitSet -> {
                         //checks if ID exists
                         automata.State fromState = ids.get(from);
-
                         //get Label
                         List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
                         for (int i = 0; i < alphabetSize; i++) {
                             BooleanExpression<AtomLabel> atom = new BooleanExpression<>(AtomLabel.createAPIndex(i));
-
-                            if (bitSet.get(i)) {
-                                conjuncts.add(atom);
-                            } else {
-                                conjuncts.add(atom.not());
-                            }
+                            conjuncts.add(bitSet.get(i) ? atom : atom.not());
                         }
                         String l = BooleanExpressions.createConjunction(conjuncts).toString();
                         String label = labelIDs.get(l);
@@ -152,7 +143,6 @@ public class Formula2Automaton<S> {
 
                         FSATransition t = new FSATransition(fromState, toState, label);
                         fsa.addTransition(t);
-
 
                         if (edge.acceptanceSetIterator().hasNext()) {
                             //add transition
@@ -172,11 +162,10 @@ public class Formula2Automaton<S> {
         min.initializeMinimizer();
         automata.Automaton to_minimize = min.getMinimizeableAutomaton((automata.Automaton) dfa.clone());
         DefaultTreeModel tree = min.getDistinguishableGroupsTree(to_minimize);
-        automata.Automaton dfa_minimized = min.getMinimumDfa(to_minimize, tree);
-        return dfa_minimized;
+        return min.getMinimumDfa(to_minimize, tree);
     }
 
-    public <S> automata.Automaton telaToDfa(Automaton<S, EmersonLeiAcceptance> automaton) {
+    public automata.Automaton telaToDfa(Automaton<S, EmersonLeiAcceptance> automaton) {
         System.out.println("Building DFA...");
         automata.Automaton fsa = new FiniteStateAutomaton();
         stateNumbers = new Object2IntOpenHashMap();
@@ -200,13 +189,10 @@ public class Formula2Automaton<S> {
         //get initial nodes
         for (S in : automaton.initialStates()) {
             //create and set initial state
-//            automata.State ais = fsa.createStateWithId(new Point(),getStateId(in));
             automata.State ais = ids.get(in);
             //initial node ids
             FSATransition t = new FSATransition(is, ais, FSAToRegularExpressionConverter.LAMBDA);
             fsa.addTransition(t);
-//            ids.put(in.toString(), ais.getID());
-//            System.out.println("initial: "+ in.toString());
         }
 
         for (S from : automaton.states()) {
@@ -222,12 +208,7 @@ public class Formula2Automaton<S> {
                         List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
                         for (int i = 0; i < alphabetSize; i++) {
                             BooleanExpression<AtomLabel> atom = new BooleanExpression<>(AtomLabel.createAPIndex(i));
-
-                            if (bitSet.get(i)) {
-                                conjuncts.add(atom);
-                            } else {
-                                conjuncts.add(atom.not());
-                            }
+                            conjuncts.add(bitSet.get(i) ? atom : atom.not());
                         }
                         String l = BooleanExpressions.createConjunction(conjuncts).toString();
                         String label = labelIDs.get(l);
@@ -263,7 +244,7 @@ public class Formula2Automaton<S> {
         return dfa_minimized;
     }
 
-    public <S> automata.Automaton PAtoDfa(Automaton<S, ParityAcceptance> automaton) {
+    public automata.Automaton PAtoDfa(Automaton<S, ParityAcceptance> automaton) {
 //        System.out.println("Building DFA...");
         automata.Automaton fsa = new FiniteStateAutomaton();
         stateNumbers = new Object2IntOpenHashMap();
@@ -287,13 +268,10 @@ public class Formula2Automaton<S> {
         //get initial nodes
         for (S in : automaton.initialStates()) {
             //create and set initial state
-//            automata.State ais = fsa.createStateWithId(new Point(),getStateId(in));
             automata.State ais = ids.get(in);
             //initial node ids
             FSATransition t = new FSATransition(is, ais, FSAToRegularExpressionConverter.LAMBDA);
             fsa.addTransition(t);
-//            ids.put(in.toString(), ais.getID());
-//            System.out.println("initial: "+ in.toString());
         }
 
         for (S from : automaton.states()) {
