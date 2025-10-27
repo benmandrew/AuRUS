@@ -30,11 +30,11 @@ public class SpecificationGeneticAlgorithm {
     public List<SpecificationChromosome> bestSolutions = new LinkedList<>();
 
     public void run(Tlsf spec) throws IOException, InterruptedException {
-        run(spec, -1.0d, -1.0d, -1.0d);
+        run(spec, -1.0d, -1.0d, -1.0d, -1.0d);
     }
 
-    public void run(Tlsf spec, double status_factor, double syntactic_factor, double semantic_factor) throws IOException, InterruptedException {
-        Settings.setFactors(status_factor, syntactic_factor, semantic_factor);
+    public void run(Tlsf spec, double status_factor, double syntactic_factor, double strengthen_semantic_factor, double weaken_semantic_factor) throws IOException, InterruptedException {
+        Settings.setFactors(status_factor, syntactic_factor, strengthen_semantic_factor, weaken_semantic_factor);
         System.out.println(Settings.print_settings() + "\n");
         initialExecutionTime = Instant.now();
         Population<SpecificationChromosome> population = createInitialPopulation(spec);

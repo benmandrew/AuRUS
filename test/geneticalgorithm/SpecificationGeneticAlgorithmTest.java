@@ -133,7 +133,7 @@ class SpecificationGeneticAlgorithmTest {
         Settings.GA_GUARANTEES_PREFERENCE_FACTOR = 70;
         Settings.check_REALIZABILITY = false;
 //		Settings.check_STRONG_SAT = true;
-        ga.run(tlsf, .7d, .3d, 0d);
+        ga.run(tlsf, .7d, .3d, 0d, 0d);
     }
 
     @Test
@@ -159,7 +159,7 @@ class SpecificationGeneticAlgorithmTest {
         Settings.GA_POPULATION_SIZE = 30;
         Settings.GA_MUTATION_RATE = 100;
         //Settings.GA_MAX_NUM_INDIVIDUALS = 1000;
-        ga.run(tlsf, 0, 0, 0);
+        ga.run(tlsf, 0, 0, 0, 0);
     }
 
     @Test

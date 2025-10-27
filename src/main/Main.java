@@ -28,7 +28,8 @@ public class Main {
         boolean randomGen = false;
         double status_factor = -1.0d;
         double syntactic_factor = -1.0d;
-        double semantic_factor = -1.0d;
+        double strengthen_semantic_factor = -1.0d;
+        double weaken_semantic_factor = -1.0d;
         boolean allowGuaranteesRemoval = false;
         boolean allowAssumptionsAddition = false;
         boolean onlyInputsInAssumptions = false;
@@ -94,13 +95,14 @@ public class Main {
                 threshold = Double.parseDouble(arg.replace("-sol=", ""));
             } else if (arg.startsWith("-factors")) {
                 String[] factors = arg.replace("-factors=", "").split(",");
-                if (factors.length != 3) {
+                if (factors.length != 4) {
                     correctUssage();
                     return;
                 }
                 status_factor = Double.parseDouble(factors[0]);
                 syntactic_factor = Double.parseDouble(factors[1]);
-                semantic_factor = Double.parseDouble(factors[2]);
+                strengthen_semantic_factor = Double.parseDouble(factors[2]);
+                weaken_semantic_factor = Double.parseDouble(factors[3]);
             } else if (arg.startsWith("-ref=")) {
                 String ref_name = arg.replace("-ref=", "");
                 Tlsf ref_sol = TlsfUtils.toBasicTLSF(new File(ref_name));
@@ -148,7 +150,7 @@ public class Main {
         if (randomGen)
             ga.runRandom(tlsf);
         else
-            ga.run(tlsf, status_factor, syntactic_factor, semantic_factor);
+            ga.run(tlsf, status_factor, syntactic_factor, strengthen_semantic_factor, weaken_semantic_factor);
 
 //		if (ga.solutions.isEmpty())
 //			System.exit(0);
@@ -280,7 +282,7 @@ public class Main {
                 "\t -Pop=population_size | -COR=crossover_rate | -MR=mutation_rate | \n" +
                 "\t -geneMR=gene_mutation_rate | -geneNUM=num_of_genes_to_mutate | \n" +
                 "\t -removeGuarantees | -addAssumptions | -onlyInputsA | -GPR=guarantee_preference_rate | \n" +
-                "\t -k=bound | -precise | -factors=STATUS_factor,MC_factor,SYN_factor | \n" +
+                "\t -k=bound | -precise | -factors=STATUS_factor,SYN_factor,MC_strengthen_factor,MC_weaken_factor | \n" +
                 "\t -RTO=strix_timeout -GATO=GA_timeout | -SatTO=sat_timeout | -MCTO=model_counting_timeout | \n" +
                 "\t -ref=TLSF_reference_solution]\n" +
                 "\tinput-file.tlsf");

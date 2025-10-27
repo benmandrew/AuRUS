@@ -50,16 +50,15 @@ public class Settings {
         return STATUS_FACTOR + LOST_MODELS_FACTOR + WON_MODELS_FACTOR + SYNTACTIC_FACTOR;
     }
 
-    public static void setFactors(double status_factor, double syntactic_factor, double semantic_factor) {
+    public static void setFactors(double status_factor, double syntactic_factor, double strengthen_semantic_factor, double weaken_semantic_factor) {
         if (status_factor >= 0.0d)
             STATUS_FACTOR = status_factor;
         if (syntactic_factor >= 0.0d)
             SYNTACTIC_FACTOR = syntactic_factor;
-        if (semantic_factor >= 0.0d) {
-            double factor = semantic_factor / 2.0d;
-            LOST_MODELS_FACTOR = factor;
-            WON_MODELS_FACTOR = factor;
-        }
+        if (strengthen_semantic_factor >= 0.0d)
+            LOST_MODELS_FACTOR = strengthen_semantic_factor;
+        if (weaken_semantic_factor >= 0.0d)
+            WON_MODELS_FACTOR = weaken_semantic_factor;
     }
 
     public static void setStrixName(String outname) {
