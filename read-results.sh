@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#echo -e "\t\t\t\t\tGenuine\t\tWeaker\t\tStronger\t"
-#echo -e "time(s)  \t#Sol.  Best Fit.  AVG Fit.  #Sol Found Best Fit. AVG Fit. #Sol Found Best Fit. AVG Fit. #Sol Found Best Fit. AVG Fit."
+printf "%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n" "" "Total" "" "" "Genuine" "" "" "Weaker" "" "" "Stronger"
+printf "%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n" "time(s)" "#Sol" "BestFit" "AvgFit" "#Sol" "BestFit" "AvgFit" "#Sol" "BestFit" "AvgFit" "#Sol" "BestFit" "AvgFit"
 
-for K in {2..9}
+for K in {1..10}
 do
-DIR=$1-$K
+DIR=$1_$K
 file=$DIR/out.txt
 
-GAtime=$(grep '^Time:' $file | grep -o ..........$)
+GAtime=$(grep '^Time:' $file | grep -o ....$)
 #Sol=$(ls -1q $DIR/spec* | wc -l)
 Sol=$(grep "Num. of Solutions: " $file | grep -o ....$)
 BestFit=$(grep "Best fitness:" $file | grep -o ....$)
@@ -29,6 +29,6 @@ SSol=$(grep "Stronger Solutions:" $file | grep -o ....$)
 SBestFit=$(grep "Best Stronger fitness:" $file | grep -o ....$)
 SAvgFit=$(grep "AVG Stronger fitness:" $file | grep -o ....$)
 
-echo -e "${GAtime}\t${Sol}\t${BestFit}\t${AvgFit}\t${GenSol}\t${GenBestFit}\t${GenAvgFit}\t${WSol}\t${WBestFit}\t${WAvgFit}\t${SSol}\t${SBestFit}\t${SAvgFit}"
+printf "%10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n" "${GAtime}" "${Sol}" "${BestFit}" "${AvgFit}" "${GenSol}" "${GenBestFit}" "${GenAvgFit}" "${WSol}" "${WBestFit}" "${WAvgFit}" "${SSol}" "${SBestFit}" "${SAvgFit}"
 
 done
