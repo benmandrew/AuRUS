@@ -247,7 +247,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
             return 1.0d;
         if (refined_formula == BooleanConstant.FALSE)
             return 0.0d;
-        Formula lostModels = Conjunction.of(original.toFormula().formula(), refined_formula.not());
+        Formula lostModels = Conjunction.of(original.toFormula().formula(), refined_formula);
 
         LabelledFormula formula = LabelledFormula.of(lostModels, original.variables());
         BigInteger form_count = countModels(formula);
@@ -260,7 +260,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
 //        BigDecimal numOfModels = new BigDecimal(UNIVERSE);
 
         BigDecimal res = numOfLostModels.divide(numOfModels, 2, RoundingMode.HALF_UP);
-        double value = 1.0d - res.doubleValue();
+        double value = res.doubleValue();
 //		System.out.print(numOfLostModels + " " + numOfModels + " ");
         if (res.doubleValue() > 1.0d) {
             System.out.println("\nWARNING: increase the bound. ");
@@ -279,7 +279,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
             return 0.0d;
 
         Formula original_formula = original.toFormula().formula();
-        Formula wonModels = Conjunction.of(original_formula.not(), refined.toFormula().formula());
+        Formula wonModels = Conjunction.of(original_formula, refined.toFormula().formula());
 
         LabelledFormula formula = LabelledFormula.of(wonModels, original.variables());
         //patch to avoid computing again this value;
@@ -290,7 +290,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         BigDecimal numOfRefinedModels = new BigDecimal(refinedNumOfModels);
         BigDecimal res = numOfWonModels.divide(numOfRefinedModels, 2, RoundingMode.HALF_UP);
 
-        double value = 1.0d - res.doubleValue();
+        double value = res.doubleValue();
         if (res.doubleValue() > 1.0d) {
             System.out.println("\nWARNING: increase the bound. ");
             return 1.0d;
