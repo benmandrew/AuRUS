@@ -39,13 +39,10 @@ public class SpecificationMutator {
 
 
             Formula mutated_subformula;
-            int modification = Settings.RANDOM_GENERATOR.nextInt(3);
+            int modification = Settings.RANDOM_GENERATOR.nextInt(2);
             if (modification == 0) {
                 // arbitrary mutation
                 mutated_subformula = applyGeneralMutation(to_mutate, vars);
-            } else if (modification == 1) {
-                // weaken mutation
-                mutated_subformula = weakenFormula(to_mutate, vars);
             } else {
                 // strengthen mutation
                 mutated_subformula = strengthenFormula(to_mutate, vars);
@@ -72,15 +69,12 @@ public class SpecificationMutator {
             Formula to_mutate = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
 
             Formula mutated_subformula;
-            int modification = Settings.RANDOM_GENERATOR.nextInt(3);
-            if (modification == 0) {
-                // arbitrary mutation
-                mutated_subformula = strengthenFormula(to_mutate, spec.variables());
-            } else if (modification == 1) {
+            int modification = Settings.RANDOM_GENERATOR.nextInt(2);
+            if (modification == 1) {
                 // weaken mutation
                 mutated_subformula = weakenFormula(to_mutate, spec.variables());
             } else {
-                // weaken mutation
+                // arbitrary mutation
                 mutated_subformula = applyGeneralMutation(to_mutate, spec.variables());
             }
 
