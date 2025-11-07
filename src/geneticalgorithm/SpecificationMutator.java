@@ -37,19 +37,8 @@ public class SpecificationMutator {
             int n = subformulas.size();
             Formula to_mutate = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
 
+            Formula mutated_subformula = strengthenFormula(to_mutate, vars);
 
-            Formula mutated_subformula;
-            int modification = Settings.RANDOM_GENERATOR.nextInt(3);
-            if (modification == 0) {
-                // arbitrary mutation
-                mutated_subformula = applyGeneralMutation(to_mutate, vars);
-            } else if (modification == 1) {
-                // weaken mutation
-                mutated_subformula = weakenFormula(to_mutate, vars);
-            } else {
-                // strengthen mutation
-                mutated_subformula = strengthenFormula(to_mutate, vars);
-            }
             SubformulaReplacer visitor = new SubformulaReplacer(to_mutate, mutated_subformula);
             Formula new_assumption = assumption_to_mutate.accept(visitor);
 
@@ -71,18 +60,7 @@ public class SpecificationMutator {
             int n = subformulas.size();
             Formula to_mutate = (Formula) subformulas.toArray()[Settings.RANDOM_GENERATOR.nextInt(n)];
 
-            Formula mutated_subformula;
-            int modification = Settings.RANDOM_GENERATOR.nextInt(3);
-            if (modification == 0) {
-                // arbitrary mutation
-                mutated_subformula = strengthenFormula(to_mutate, spec.variables());
-            } else if (modification == 1) {
-                // weaken mutation
-                mutated_subformula = weakenFormula(to_mutate, spec.variables());
-            } else {
-                // weaken mutation
-                mutated_subformula = applyGeneralMutation(to_mutate, spec.variables());
-            }
+            Formula mutated_subformula = weakenFormula(to_mutate, spec.variables());
 
             SubformulaReplacer visitor = new SubformulaReplacer(to_mutate, mutated_subformula);
             Formula new_guarantee = guarantee_to_mutate.accept(visitor);
