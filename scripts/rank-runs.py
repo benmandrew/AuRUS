@@ -10,19 +10,32 @@ import argparse
 class RepairRecord:
     score: float
     runs: list[tuple[str, str]]
-    
+
+ASSUMPTIONS_START = "ASSUMPTIONS {\n"
+GUARANTEES_START = "GUARANTEES {\n"
+
+
+def normalise_tlsf(contents: str) -> str:
+    contents = "\n".join([line for line in contents.splitlines() if not line.startswith("//")])
+    front = ""
+    rest = contents
+    if ASSUMPTIONS_START in contents:
+        prefix, assumptions = contents.split(ASSUMPTIONS_START, maxsplit=1)
+        assumptions, rest = assumptions.split("}\n", maxsplit=1)
+        sorted_assumptions = "\n".join(sorted(assumptions.splitlines())[1:])
+        front = prefix + ASSUMPTIONS_START + sorted_assumptions + "\n  }\n"
+    middle, guarantees = rest.split(GUARANTEES_START, maxsplit=1)
+    guarantees, rest = guarantees.split("}\n", maxsplit=1)
+    sorted_guarantees = "\n".join(sorted(guarantees.splitlines())[1:])
+    return front + middle + GUARANTEES_START + sorted_guarantees + "\n" + rest + "}\n"
+
 
 def add_repair(repair_map: dict[str, RepairRecord], contents: str, score: float, run_name: str, file_name: str):
-    if contents in repair_map:
-        repair_map[contents].runs.append((run_name, file_name))
+    tlsf = normalise_tlsf(contents)
+    if tlsf in repair_map:
+        repair_map[tlsf].runs.append((run_name, file_name))
     else:
-        repair_map[contents] = RepairRecord(score, [(run_name, file_name)])
-
-case_study_dir = Path("case-studies")
-original_spec = (case_study_dir / "arbiter" / "arbiter.tlsf").read_text().splitlines()
-original_spec = [line.strip() for line in original_spec]
-
-seen: set[str] = set()
+        repair_map[tlsf] = RepairRecord(score, [(run_name, file_name)])
 
 
 def color_diff(line: str) -> str:
@@ -37,8 +50,12 @@ def color_diff(line: str) -> str:
     return colored(line, color)
 
 
+case_study_dir = Path("case-studies")
+original_spec = normalise_tlsf((case_study_dir / "arbiter" / "arbiter.tlsf").read_text()).splitlines()
+original_spec = [line.strip() for line in original_spec]
+
 START_RANK = 0
-N_RANKS = 20
+N_RANKS = 50
 
 def main():
     ap = argparse.ArgumentParser(description="Rank runs")
@@ -72,22 +89,22 @@ def main():
 
     print("Overall ranking:")
     rank = 1
+    seen: set[str] = set()
     for fitness_score, syntactic_score, semantic_score, run_name, file_name, contents in scores:
         if rank > START_RANK + N_RANKS:
             break
-        if contents in seen:
+        tlsf = normalise_tlsf(contents)
+        if tlsf in seen:
             continue
-        seen.add(contents)
+        seen.add(tlsf)
         if rank <= START_RANK:
             rank += 1
             continue
-        print(f"{rank}: fitness {fitness_score:.4f}, syntactic {syntactic_score:.4f}, semantic {semantic_score:.4f} - {len(repair_map[contents].runs)} runs - e.g. {run_name}/{file_name}")
+        print(f"{rank}: fitness {fitness_score:.4f}, syntactic {syntactic_score:.4f}, semantic {semantic_score:.4f} - {len(repair_map[tlsf].runs)} runs - e.g. {run_name}/{file_name}")
         rank += 1
-        
-        lines = contents.splitlines()
+        lines = tlsf.splitlines()
         lines = [line for line in lines if not line.startswith("//")]
         lines = [line.strip() for line in lines]
-        
         for line in difflib.unified_diff(original_spec, lines, n=1):
             if line.startswith('---') or line.startswith('+++') or line.startswith('@@') or line.isspace():
                 continue
