@@ -5,6 +5,7 @@
 TotalSol=0
 TotalWOrigSol=0
 TotalWSol=0
+TotalGSol=0
 TotalRatio=0
 NRuns=0
 
@@ -16,12 +17,14 @@ for folder in "${FOLDERS[@]}"; do
     WOrigSol=$(grep "Num. of Solutions weaker than original:" "$file" | grep -o ...$ | sed 's/[^0-9]*//g')
     # GenSol=$(grep "Genuine Solutions:" "$file" | grep -o ....$)
     WSol=$(grep "Weaker Solutions:" "$file" | grep -o ....$)
+    GSol=$(grep "Genuine Solutions:" "$file" | grep -o ....$)
     # SSol=$(grep "Stronger Solutions:" "$file" | grep -o ....$)
     Ratio=$(bc -l<<<"${WOrigSol}/${Sol}")
     # printf "%14s %14s %28s %14s %14s %14s %14s\n" "${GAtime}" "${Sol}" "${WOrigSol}" "${Ratio}" "${GenSol}" "${WSol}" "${SSol}"
     TotalSol=$((TotalSol + Sol))
     TotalWOrigSol=$((TotalWOrigSol + WOrigSol))
     TotalWSol=$((TotalWSol + WSol))
+    TotalGSol=$((TotalGSol + GSol))
     TotalRatio=$(bc -l<<<"${TotalRatio} + ${Ratio}")
     NRuns=$((NRuns + 1))
 done
@@ -29,12 +32,14 @@ done
 AvgSol=$((TotalSol / NRuns))
 AvgWOrigSol=$((TotalWOrigSol / NRuns))
 AvgWSol=$((TotalWSol / NRuns))
+AvgGSol=$((TotalGSol / NRuns))
 NRunsFloat=$(bc -l<<<"${NRuns}")
 AvgRatio=$(bc -l<<<"scale=2; ${TotalRatio}/${NRunsFloat}")
 
 SolStandardDev=0
 WOrigSolStandardDev=0
 WSolStandardDev=0
+GSolStandardDev=0
 RatioStandardDev=0
 for folder in "${FOLDERS[@]}"; do
     file=$folder/out.txt
@@ -50,6 +55,10 @@ for folder in "${FOLDERS[@]}"; do
     Diff=$((WSol - AvgWSol))
     SqDiff=$((Diff * Diff))
     WSolStandardDev=$((WSolStandardDev + SqDiff))
+    GSol=$(grep "Genuine Solutions:" "$file" | grep -o ....$)
+    Diff=$((GSol - AvgGSol))
+    SqDiff=$((Diff * Diff))
+    GSolStandardDev=$((GSolStandardDev + SqDiff))
     Ratio=$(bc -l<<<"${WOrigSol}/${Sol}")
     Diff=$(bc -l<<<"${Ratio} - ${AvgRatio}")
     SqDiff=$(bc -l<<<"${Diff} * ${Diff}")
@@ -59,12 +68,21 @@ done
 SolStandardDev=$(bc -l<<<"scale=2; sqrt(${SolStandardDev}/${NRunsFloat})")
 WOrigSolStandardDev=$(bc -l<<<"scale=2; sqrt(${WOrigSolStandardDev}/${NRunsFloat})")
 WSolStandardDev=$(bc -l<<<"scale=2; sqrt(${WSolStandardDev}/${NRunsFloat})")
+GSolStandardDev=$(bc -l<<<"scale=2; sqrt(${GSolStandardDev}/${NRunsFloat})")
 RatioStandardDev=$(bc -l<<<"scale=4; sqrt(${RatioStandardDev}/${NRunsFloat})")
 
-printf "Average total #Sol: %s (StdDev: %s)\n" "${AvgSol}" "${SolStandardDev}"
-printf "Average weaker than original #Sol: %s (StdDev: %s)\n" "${AvgWOrigSol}" "${WOrigSolStandardDev}"
-printf "Average weaker than original ratio: %s (StdDev: %s)\n" "${AvgRatio}" "${RatioStandardDev}"
-printf "Average weaker than genuine #Sol: %s (StdDev: %s)\n" "${AvgWSol}" "${WSolStandardDev}"
+# printf "Average total #Sol: %s (StdDev: %s)\n" "${AvgSol}" "${SolStandardDev}"
+# printf "Average weaker than original #Sol: %s (StdDev: %s)\n" "${AvgWOrigSol}" "${WOrigSolStandardDev}"
+# printf "Average weaker than original ratio: %s (StdDev: %s)\n" "${AvgRatio}" "${RatioStandardDev}"
+# printf "Average weaker than genuine #Sol: %s (StdDev: %s)\n" "${AvgWSol}" "${WSolStandardDev}"
+# printf "Average genuine #Sol: %s (StdDev: %s)\n" "${AvgGSol}" "${GSolStandardDev}"
+
+printf "%s (%s), %s (%s), %s (%s), %s (%s), %s (%s)\n" \
+    "${AvgSol}" "${SolStandardDev}" \
+    "${AvgWOrigSol}" "${WOrigSolStandardDev}" \
+    "${AvgRatio}" "${RatioStandardDev}" \
+    "${AvgWSol}" "${WSolStandardDev}" \
+    "${AvgGSol}" "${GSolStandardDev}"
 
 # pushd "$(mktemp -d)" > /dev/null || exit 1
 
