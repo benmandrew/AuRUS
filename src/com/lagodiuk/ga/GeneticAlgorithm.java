@@ -51,12 +51,11 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
     private Predicate<C> filterPredicate = null;
 
 
-    public GeneticAlgorithm(Population<C> population, Fitness<C, T> fitnessFunc, Predicate<C> filterPredicate) {
+    public GeneticAlgorithm(Population<C> population, Fitness<C, T> fitnessFunc) {
         this.population = population;
         this.fitnessFunc = fitnessFunc;
         this.chromosomesComparator = new ChromosomesComparator();
         this.population.sortPopulationByFitness(this.chromosomesComparator);
-        this.filterPredicate = filterPredicate;
     }
 
     public void evolve() {
@@ -102,9 +101,6 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
             });
 
             checkTermination();
-        }
-        if (this.filterPredicate != null) {
-            newPopulation.filter(this.filterPredicate);
         }
         newPopulation.sortPopulationByFitness(this.chromosomesComparator);
         this.population = newPopulation;

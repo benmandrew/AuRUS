@@ -99,35 +99,37 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
 //		if (syntactic_distance < 1.0d) {
         //if the specifications are not syntactically equivalent
         // Second, compute the portion of loosing models with respect to the original specification
-        double lost_models_fitness = 0.0d; // if the current specification is inconsistent, then it looses all the models (it maintains 0% of models of the original specification)
-        if (syntactic_distance < 1.0d && Settings.LOST_MODELS_FACTOR > 0.0d && originalStatus.isSpecificationConsistent() && chromosome.status.isSpecificationConsistent()) {
-            // if both specifications are consistent, then we will compute the percentage of models that are maintained after the refinement
-            try {
-                lost_models_fitness = compute_lost_models_porcentage(originalSpecification, chromosome.spec);
-                System.out.printf("%.2f ", lost_models_fitness);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        // double lost_models_fitness = 0.0d; // if the current specification is inconsistent, then it looses all the models (it maintains 0% of models of the original specification)
+        // if (syntactic_distance < 1.0d && Settings.LOST_MODELS_FACTOR > 0.0d && originalStatus.isSpecificationConsistent() && chromosome.status.isSpecificationConsistent()) {
+        //     // if both specifications are consistent, then we will compute the percentage of models that are maintained after the refinement
+        //     try {
+        //         lost_models_fitness = compute_lost_models_porcentage(originalSpecification, chromosome.spec);
+        //         System.out.printf("%.2f ", lost_models_fitness);
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //     }
+        // }
 
-        // Third, compute the portion of winning models with respect to the original specification
-        double won_models_fitness = 0.0d;
-        if (syntactic_distance < 1.0d && Settings.WON_MODELS_FACTOR > 0.0d && originalStatus.isSpecificationConsistent() && chromosome.status.isSpecificationConsistent()) {
-            // if both specifications are consistent, then we will compute the percentage of models that are added after the refinement (or removed from the complement of the original specifiction)
-            try {
-                won_models_fitness = compute_won_models_porcentage(originalSpecification, chromosome.spec);
-                System.out.printf("%.2f ", won_models_fitness);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        // // Third, compute the portion of winning models with respect to the original specification
+        // double won_models_fitness = 0.0d;
+        // if (syntactic_distance < 1.0d && Settings.WON_MODELS_FACTOR > 0.0d && originalStatus.isSpecificationConsistent() && chromosome.status.isSpecificationConsistent()) {
+        //     // if both specifications are consistent, then we will compute the percentage of models that are added after the refinement (or removed from the complement of the original specifiction)
+        //     try {
+        //         won_models_fitness = compute_won_models_porcentage(originalSpecification, chromosome.spec);
+        //         System.out.printf("%.2f ", won_models_fitness);
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //     }
+        // }
 
-        double fitness = (Settings.STATUS_FACTOR * status_fitness) + (Settings.LOST_MODELS_FACTOR * lost_models_fitness) + (Settings.WON_MODELS_FACTOR * won_models_fitness) + (Settings.SYNTACTIC_FACTOR * syntactic_distance);
+        // double fitness = (Settings.STATUS_FACTOR * status_fitness) + (Settings.LOST_MODELS_FACTOR * lost_models_fitness) + (Settings.WON_MODELS_FACTOR * won_models_fitness) + (Settings.SYNTACTIC_FACTOR * syntactic_distance);
+        double fitness = ((Settings.STATUS_FACTOR * status_fitness) + (Settings.SYNTACTIC_FACTOR * syntactic_distance)) / (Settings.STATUS_FACTOR + Settings.SYNTACTIC_FACTOR);
 //		}
         System.out.printf("f%.2f ", fitness);
         chromosome.fitness = fitness;
         chromosome.syntactic_distance = syntactic_distance;
-        chromosome.semantic_distance = (0.5d * lost_models_fitness) + (0.5d * won_models_fitness);
+        // chromosome.semantic_distance = (0.5d * lost_models_fitness) + (0.5d * won_models_fitness);
+        chromosome.semantic_distance = 0.0d;
 
         if (fitness > Settings.MAX_FITNESS()) {
             System.out.printf("BROKEN Fitness: %.2f%n", fitness);
