@@ -8,6 +8,15 @@ import argparse
 SCORE_PREFIX = "//fitness: "
 METRIC_NAME = "Fitness"
 
+# Default custom sort order for arbiter parameters
+DEFAULT_SORT_ORDER = [
+    "arbiter-70-10-0-20",
+    "arbiter-70-10-5-15",
+    "arbiter-70-10-10-10",
+    "arbiter-70-10-15-5",
+    "arbiter-70-10-20-0",
+]
+
 def read_scores(data_directory: Path, pattern="run_*"):
     runs = sorted(data_directory.glob("run_*"))
     scores = []
@@ -46,19 +55,29 @@ def plot_histogram(scores, bins=20, title=f"{METRIC_NAME} scores distribution", 
         plt.show()
     plt.close()
 
-def plot_histogram_multi(data_dict, bins=20, title=f"{METRIC_NAME} scores distribution (comparison)", save_path=None):
+def plot_histogram_multi(data_dict, bins=20, title=f"{METRIC_NAME} scores distribution (comparison)", save_path=None, sort_order=None):
     """Plot multiple datasets on a single histogram with different colors and transparency."""
     plt.figure(figsize=(10, 6))
-    
-    colors = plt.cm.tab10(range(len(data_dict)))
-    for (label, scores), color in zip(data_dict.items(), colors):
+
+    # Sort data_dict according to sort_order if provided
+    if sort_order:
+        sorted_items = [(label, data_dict[label]) for label in sort_order if label in data_dict]
+        # Append any labels not in sort_order
+        for label in sorted(data_dict.keys()):
+            if label not in sort_order:
+                sorted_items.append((label, data_dict[label]))
+    else:
+        sorted_items = sorted(data_dict.items())
+
+    colors = plt.cm.tab10(range(len(sorted_items)))
+    for (label, scores), color in zip(sorted_items, colors):
         plt.hist(scores, bins=bins, range=(0, 1), label=label, alpha=0.6, edgecolor='black', color=color)
-    
+
     plt.xlabel("Score")
     plt.ylabel("Count")
     plt.minorticks_on()
     plt.title(title)
-    plt.legend(loc='upper right')
+    plt.legend(loc='upper left')
     plt.grid(axis='y', alpha=0.3)
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
@@ -91,18 +110,19 @@ def main():
         if not data_dir.exists():
             print(f"Warning: Data directory not found: {data_dir}")
             continue
-        
+
         scores, _ = read_scores(data_dir)
         if scores:
             # Use folder name as label (last component of path)
             label = data_dir.name
             data_dict[label] = scores
-    
+
     if not data_dict:
         print("No scores found in any folder.")
         return
-    
-    plot_histogram_multi(data_dict, bins=args.bins, save_path=args.save)
+
+    filtered_sort_order = [label for label in DEFAULT_SORT_ORDER if label in data_dict]
+    plot_histogram_multi(data_dict, bins=args.bins, save_path=args.save, sort_order=filtered_sort_order if filtered_sort_order else None)
 
 
 if __name__ == "__main__":
