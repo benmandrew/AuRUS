@@ -1,6 +1,11 @@
 #!/bin/bash
 
-FOLDERS=(./25-12-02-ltl-filter-arbiter/*)
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <results_directory>"
+    exit 1
+fi
+
+FOLDERS=("$1"/*)
 
 for folder in "${FOLDERS[@]}"; do
     if [ ! -d "$folder" ]; then
