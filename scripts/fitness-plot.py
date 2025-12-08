@@ -3,10 +3,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import argparse
 
-# SCORE_PREFIX = "//semantic: "
-# METRIC_NAME = "Semantic"
-SCORE_PREFIX = "//fitness: "
-METRIC_NAME = "Fitness"
 
 # Default custom sort order for arbiter parameters
 DEFAULT_SORT_ORDER = [
@@ -17,7 +13,8 @@ DEFAULT_SORT_ORDER = [
     "arbiter-70-10-20-0",
 ]
 
-def read_scores(data_directory: Path, pattern="run_*"):
+
+def read_scores(data_directory: Path, score_property: str = "fitness"):
     runs = sorted(data_directory.glob("run_*"))
     scores = []
     labels = []
@@ -27,36 +24,20 @@ def read_scores(data_directory: Path, pattern="run_*"):
         for spec_file in run.glob("spec*.tlsf"):
             with spec_file.open() as f:
                 for line in f:
-                    if line.startswith(SCORE_PREFIX):
-                        try:
-                            score = float(line.split()[1])
-                            scores.append(score)
-                            labels.append(run.name)
-                            found = True
-                            break
-                        except Exception:
-                            # ignore malformed lines
-                            pass
+                    if line.startswith(f"//{score_property}: "):
+                        score = float(line.split()[1])
+                        scores.append(score)
+                        labels.append(run.name)
+                        found = True
+                        break
             if found:
                 break
     return scores, labels
 
-def plot_histogram(scores, bins=20, title=f"{METRIC_NAME} scores distribution", save_path=None):
-    plt.figure(figsize=(8,5))
-    plt.hist(scores, bins=bins, range=(0,1), edgecolor='black', alpha=0.8)
-    plt.xlabel("Score")
-    plt.ylabel("Count")
-    plt.minorticks_on()
-    plt.title(title)
-    plt.grid(axis='y', alpha=0.3)
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
-    else:
-        plt.show()
-    plt.close()
 
-def plot_histogram_multi(data_dict, bins=20, title=f"{METRIC_NAME} scores distribution (comparison)", save_path=None, sort_order=None):
+def plot_histogram_multi(data_dict, bins=20, score_property: str = "fitness", save_path=None, sort_order=None):
     """Plot multiple datasets on a single histogram with different colors and transparency."""
+    title = f"{score_property.capitalize()} scores distribution (comparison)"
     plt.figure(figsize=(10, 6))
 
     # Sort data_dict according to sort_order if provided
@@ -85,12 +66,15 @@ def plot_histogram_multi(data_dict, bins=20, title=f"{METRIC_NAME} scores distri
         plt.show()
     plt.close()
 
+
 def main():
     ap = argparse.ArgumentParser(description="Plot fitness scores with histogram.")
     ap.add_argument("data_dir", type=str, 
                     help="Folder containing run_* subfolders. Pass a parent directory to plot all subdirectories.")
     ap.add_argument("--bins", type=int, default=20, help="Bins for histogram")
     ap.add_argument("--save", type=str, default=None, help="Save figure to this path instead of showing")
+    ap.add_argument("--property", type=str, choices=["syntactic", "semantic", "fitness"], default="fitness",
+                    help="Which property to plot (default: fitness)")
     args = ap.parse_args()
 
     parent_dir = Path(args.data_dir)
@@ -122,7 +106,7 @@ def main():
         return
 
     filtered_sort_order = [label for label in DEFAULT_SORT_ORDER if label in data_dict]
-    plot_histogram_multi(data_dict, bins=args.bins, save_path=args.save, sort_order=filtered_sort_order if filtered_sort_order else None)
+    plot_histogram_multi(data_dict, bins=args.bins, score_property=args.property, save_path=args.save, sort_order=filtered_sort_order if filtered_sort_order else None)
 
 
 if __name__ == "__main__":

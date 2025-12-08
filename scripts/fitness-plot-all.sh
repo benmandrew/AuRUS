@@ -12,5 +12,9 @@ for folder in "${FOLDERS[@]}"; do
         continue
     fi
     echo "Processing folder: $folder"
-    python3 scripts/fitness-plot.py "$folder" --bins 40 --save "$(basename "$folder")-fitness-hist.png"
+    python3 scripts/fitness-plot.py \
+        "$folder" \
+        --bins 40 \
+        --save "$(basename "$folder")-syntactic-hist.png" \
+        --property syntactic
 done
