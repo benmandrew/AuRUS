@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TotalSol=0
 TotalWOrigSol=0
 TotalWSol=0
