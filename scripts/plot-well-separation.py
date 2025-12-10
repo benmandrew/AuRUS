@@ -97,7 +97,7 @@ def main():
     parser = argparse.ArgumentParser(description="Plot well-separated ratio as grouped bar chart.")
     parser.add_argument("csv", type=str, help="Path to wellseparation.csv")
     parser.add_argument("--output", type=str, default=None, help="Optional path to save the plot (e.g., plot.png)")
-    parser.add_argument("--dpi", type=int, default=150, help="DPI for saved figure")
+    parser.add_argument("--dpi", type=int, default=200, help="DPI for saved figure")
     parser.add_argument(
         "--param-order",
         nargs="+",
