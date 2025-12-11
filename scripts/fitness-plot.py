@@ -95,7 +95,7 @@ def main():
             print(f"Warning: Data directory not found: {data_dir}")
             continue
 
-        scores, _ = read_scores(data_dir)
+        scores, _ = read_scores(data_dir, args.property)
         if scores:
             # Use folder name as label (last component of path)
             label = data_dir.name
