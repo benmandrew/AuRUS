@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LTLSolver {
-
-    public static int numOfTimeout = 0;
-    public static int numOfError = 0;
-    public static int numOfCalls = 0;
+    public static AtomicInteger numOfTimeout = new AtomicInteger(0);
+    public static AtomicInteger numOfError = new AtomicInteger(0);
+    public static AtomicInteger numOfCalls = new AtomicInteger(0);
 
     private static File createFormulaFile(String formula) throws IOException {
         File tempFile = File.createTempFile("ltl_formula_", ".ltl");
@@ -26,57 +26,69 @@ public class LTLSolver {
 
     private static ProcessBuilder buildProcessBuilder(File formulaFile) {
         String shellCmd = "ltl2tgba -F '" + formulaFile.getAbsolutePath() + "' | autfilt --is-empty";
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", shellCmd);
-        return pb;
+        return new ProcessBuilder("bash", "-c", shellCmd);
     }
 
-    private static SolverResult executeAndCheckResult(Process p, int timeoutSeconds) throws InterruptedException {
-        if (!p.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-            numOfTimeout++;
-            p.destroy();
+    private static SolverResult executeAndCheckResult(Process process, int timeoutSeconds) throws InterruptedException {
+        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+            numOfTimeout.incrementAndGet();
+            process.destroyForcibly();
             return SolverResult.TIMEOUT;
         }
-        // Consume stdout
-        try (InputStream in = p.getInputStream();
-             InputStreamReader inread = new InputStreamReader(in);
-             BufferedReader bufferedreader = new BufferedReader(inread)) {
-            while (bufferedreader.readLine() != null) {
+
+        try (InputStream out = process.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(out))) {
+            while (reader.readLine() != null) {
+                // drain output to avoid blocking
             }
         } catch (IOException e) {
+            numOfError.incrementAndGet();
             return SolverResult.ERROR;
         }
-        // Check stderr
-        try (InputStream err = p.getErrorStream();
-             InputStreamReader errread = new InputStreamReader(err);
-             BufferedReader errbufferedreader = new BufferedReader(errread)) {
+
+        boolean hasErrorOutput = false;
+        try (InputStream err = process.getErrorStream();
+             BufferedReader errReader = new BufferedReader(new InputStreamReader(err))) {
             String line;
-            while ((line = errbufferedreader.readLine()) != null) {
+            while ((line = errReader.readLine()) != null) {
+                hasErrorOutput = true;
                 System.out.println("ERR: " + line);
-                return SolverResult.ERROR;
             }
         } catch (IOException e) {
+            numOfError.incrementAndGet();
             return SolverResult.ERROR;
         }
-        // Check exit code: autfilt --is-empty returns 0 if automaton is empty (UNSAT)
-        int exitCode = p.exitValue();
-        return (exitCode == 0) ? SolverResult.UNSAT : SolverResult.SAT;
+
+        if (hasErrorOutput) {
+            numOfError.incrementAndGet();
+            return SolverResult.ERROR;
+        }
+
+        int exitCode = process.exitValue();
+        return exitCode == 0 ? SolverResult.UNSAT : SolverResult.SAT;
     }
 
     public static SolverResult isSAT(String formula) throws IOException, InterruptedException {
-        numOfCalls++;
+        numOfCalls.incrementAndGet();
+
         if (formula == null) {
+            numOfError.incrementAndGet();
             return SolverResult.ERROR;
         }
+
         File tempFile = null;
-        Process p = null;
+        Process process = null;
         try {
             tempFile = createFormulaFile(formula);
-            ProcessBuilder processBuilder = buildProcessBuilder(tempFile);
-            p = processBuilder.start();
-            return executeAndCheckResult(p, Settings.SAT_TIMEOUT);
+            process = buildProcessBuilder(tempFile).start();
+            return executeAndCheckResult(process, Settings.SAT_TIMEOUT);
+        } catch (IOException e) {
+            numOfError.incrementAndGet();
+            throw e;
         } finally {
-            if (p != null) {
-                p.destroy();
+            if (process != null) {
+                process.destroy();
+                process.destroyForcibly();
             }
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
