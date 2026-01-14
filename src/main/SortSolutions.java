@@ -75,13 +75,13 @@ public class SortSolutions {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         String directoryName = "";
-        String outputName = "";
+        // String outputName = "";
         int limit = -1;
         for (String arg : args) {
             if (arg.startsWith("-d=")) {
                 directoryName = arg.replace("-d=", "");
-            } else if (arg.startsWith("-out=")) {
-                outputName = arg.replace("-out=", "");
+            // } else if (arg.startsWith("-out=")) {
+            //     outputName = arg.replace("-out=", "");
             } else if (arg.startsWith("-limit=")) {
                 limit = Integer.parseInt(arg.replace("-limit=", ""));
             }
@@ -107,10 +107,15 @@ public class SortSolutions {
 
         System.out.println("Starting topological sort based on implication...");
         TopologicalSort topoSort = new TopologicalSort(specifications.size());
-        List<Integer> sortedIndices = topoSort.sort(specifications);
+        List<Integer> maximalElements = topoSort.getMaximalElements(specifications);
+        for (int i = 0; i < maximalElements.size(); i++) {
+            System.out.println("Maximal spec " + (i + 1) + ": " +
+                    new File(specifications_filenames.get(maximalElements.get(i))).getName());
+        }
+        // List<Integer> sortedIndices = topoSort.sort(specifications);
 
-        HashMap<Integer, HashSet<Integer>> adjList = topoSort.getAdjacencyList();
+        // HashMap<Integer, HashSet<Integer>> adjList = topoSort.getAdjacencyList();
 
-        renderDot(specifications_filenames, directoryName, outputName, sortedIndices, adjList);
+        // renderDot(specifications_filenames, directoryName, outputName, sortedIndices, adjList);
     }
 }

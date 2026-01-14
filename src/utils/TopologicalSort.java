@@ -16,12 +16,14 @@ import owl.ltl.GOperator;
 import owl.ltl.tlsf.Tlsf;
 import owl.ltl.visitors.SolverSyntaxOperatorReplacer;
 import solvers.LTLSolver;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TopologicalSort {
     private int vertices;
     private HashMap<Integer, HashSet<Integer>> adj;
     private Map<Integer, Integer> newToOldIndex;
     private final ReentrantReadWriteLock graphLock = new ReentrantReadWriteLock();
+    private long startTimeMillis;
 
     public TopologicalSort(int v) {
         vertices = v;
@@ -51,10 +53,9 @@ public class TopologicalSort {
         stack.push(v);
     }
 
-    private static boolean implies(Formula f1, Formula f2) throws IOException, InterruptedException {
-        SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
-        Formula negImplication = GOperator.of(Conjunction.of(f1, f2.not())).accept(visitor);
-        LTLSolver.SolverResult res = LTLSolver.isSAT(SolverUtils.toSolverSyntax(negImplication));
+    private static boolean implies(String f1, String f2) throws IOException, InterruptedException {
+        String negImplication = f1 + "& !(" + f2 + ")";
+        LTLSolver.SolverResult res = LTLSolver.isSAT(negImplication);
         return res.equals(LTLSolver.SolverResult.UNSAT);
     }
 
@@ -89,16 +90,37 @@ public class TopologicalSort {
         }
     }
 
+    private void printProgress(int from, int to, int performed, int skipped, int total) {
+        int done = performed + skipped;
+        synchronized (System.out) {
+            long elapsed = System.currentTimeMillis() - startTimeMillis;
+            String timeEstimate = "";
+            if (done > 0) {
+                long estimatedTotal = (elapsed * total) / done;
+                long remaining = estimatedTotal - elapsed;
+                timeEstimate = String.format(", ETA: %s", formatDuration(remaining));
+            }
+            System.out.print("[performed: " + performed + "/" + total + ", skipped: " + skipped + ", done: " + done + timeEstimate + "] \r");
+            if (done == total) {
+                System.out.println();
+            }
+        }
+    }
+
     private void addSpecs(List<Tlsf> specs) throws IOException, InterruptedException {
-        List<Formula> formulae = new ArrayList<>();
+        List<String> formulae = new ArrayList<>();
+        SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
         for (Tlsf spec : specs) {
-            formulae.add(spec.toFormula().formula());
+            Formula f = spec.toFormula().formula();
+            formulae.add(SolverUtils.toSolverSyntax(f.accept(visitor)));
         }
         int totalComparisons = specs.size() * (specs.size() - 1);
         AtomicInteger skippedComparisons = new AtomicInteger(0);
         AtomicInteger performedComparisons = new AtomicInteger(0);
+        startTimeMillis = System.currentTimeMillis();
         int parallelism = Math.max(2, Runtime.getRuntime().availableProcessors());
-        ExecutorService executor = Executors.newFixedThreadPool(parallelism);
+        System.out.println("Using parallelism: " + parallelism);
+        ExecutorService executor = Executors.newFixedThreadPool(parallelism - 2);
         CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
         int submittedTasks = 0;
         for (int i = 0; i < specs.size(); i++) {
@@ -201,7 +223,6 @@ public class TopologicalSort {
         addSpecs(specs);
         removeEquivalentSpecs();
         Stack<Integer> stack = new Stack<>();
-        System.out.println("vertices: " + vertices);
         boolean[] visited = new boolean[vertices];
         for (int i = 0; i < vertices; i++) {
             if (!visited[i])
@@ -217,13 +238,112 @@ public class TopologicalSort {
         return sortedIndices;
     }
 
-    private void printProgress(int from, int to, int performed, int skipped, int total) {
+    private String formatDuration(long millis) {
+        if (millis < 0) millis = 0;
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        if (hours > 0) {
+            return String.format("%dh %dm %ds", hours, minutes % 60, seconds % 60);
+        } else if (minutes > 0) {
+            return String.format("%dm %ds", minutes, seconds % 60);
+        } else {
+            return String.format("%ds", seconds);
+        }
+    }
+
+    private void printMaxElementsProgress(int from, int to, int performed, int skipped, int total) {
         int done = performed + skipped;
         synchronized (System.out) {
-            System.out.print("[performed: " + performed + "/" + total + ", skipped: " + skipped + ", done: " + done + "] \r");
+            long elapsed = System.currentTimeMillis() - startTimeMillis;
+            String timeEstimate = "";
+            if (done > 0) {
+                long estimatedTotal = (elapsed * total) / done;
+                long remaining = estimatedTotal - elapsed;
+                timeEstimate = String.format(", ETA: %s", formatDuration(remaining));
+            }
+            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \r");
             if (done == total) {
                 System.out.println();
             }
         }
+    }
+
+    public List<Integer> getMaximalElements(List<Tlsf> specs) throws IOException, InterruptedException {
+        List<String> formulae = new ArrayList<>();
+        SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
+        for (Tlsf spec : specs) {
+            Formula f = spec.toFormula().formula();
+            formulae.add(SolverUtils.toSolverSyntax(f.accept(visitor)));
+        }
+        int totalComparisons = specs.size() * (specs.size() - 1);
+        AtomicInteger skippedComparisons = new AtomicInteger(0);
+        AtomicInteger performedComparisons = new AtomicInteger(0);
+        AtomicBoolean[] subsumed = new AtomicBoolean[specs.size()];
+        for (int i = 0; i < specs.size(); i++) {
+            subsumed[i] = new AtomicBoolean(false);
+        }
+        startTimeMillis = System.currentTimeMillis();
+        int parallelism = Math.max(2, Runtime.getRuntime().availableProcessors());
+        System.out.println("Using parallelism: " + parallelism);
+        ExecutorService executor = Executors.newFixedThreadPool(parallelism - 2);
+        CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
+        int submittedTasks = 0;
+        for (int i = 0; i < specs.size(); i++) {
+            for (int j = 0; j < specs.size(); j++) {
+                if (i == j) {
+                    continue;
+                }
+                final int from = i;
+                final int to = j;
+                completionService.submit(() -> {
+                    // Skip if target is already subsumed
+                    if (subsumed[to].get()) {
+                        skippedComparisons.incrementAndGet();
+                        printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
+                        return null;
+                    }
+                    if (implies(formulae.get(from), formulae.get(to))) {
+                        subsumed[to].set(true);
+                    }
+                    performedComparisons.incrementAndGet();
+                    printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
+                    return null;
+                });
+                submittedTasks++;
+            }
+        }
+        try {
+            for (int k = 0; k < submittedTasks; k++) {
+                try {
+                    completionService.take().get();
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        throw (IOException) cause;
+                    }
+                    if (cause instanceof InterruptedException) {
+                        throw (InterruptedException) cause;
+                    }
+                    throw new RuntimeException("Implication task failed", cause);
+                }
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+        int performed = performedComparisons.get();
+        int skipped = skippedComparisons.get();
+        System.out.println("Total comparisons: performed=" + performed +
+                         ", skipped=" + skipped +
+                         ", reduction=" + (100.0 * skipped / (double) totalComparisons) + "%");
+        List<Integer> maximalIndices = new ArrayList<>();
+        for (int i = 0; i < specs.size(); i++) {
+            if (!subsumed[i].get()) {
+                maximalIndices.add(i);
+            }
+        }
+        System.out.println("Maximal elements: " + maximalIndices.size() + " out of " + specs.size() +
+                         " (removed: " + (specs.size() - maximalIndices.size()) + ")");
+        return maximalIndices;
     }
 }
