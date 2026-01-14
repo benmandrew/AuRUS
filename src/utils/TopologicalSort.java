@@ -2,7 +2,13 @@ package utils;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
@@ -15,6 +21,7 @@ public class TopologicalSort {
     private int vertices;
     private HashMap<Integer, HashSet<Integer>> adj;
     private Map<Integer, Integer> newToOldIndex;
+    private final ReentrantReadWriteLock graphLock = new ReentrantReadWriteLock();
 
     public TopologicalSort(int v) {
         vertices = v;
@@ -23,8 +30,13 @@ public class TopologicalSort {
             adj.put(i, new HashSet<>());
     }
 
-    void addEdge(int u, int v) {
-        adj.get(u).add(v);
+    private void addEdge(int u, int v) {
+        graphLock.writeLock().lock();
+        try {
+            adj.get(u).add(v);
+        } finally {
+            graphLock.writeLock().unlock();
+        }
     }
 
     void dfs(int v, boolean[] visited, Stack<Integer> stack) {
@@ -41,35 +53,40 @@ public class TopologicalSort {
 
     private static boolean implies(Formula f1, Formula f2) throws IOException, InterruptedException {
         SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
-        Formula implication = GOperator.of(Conjunction.of(f1, f2.not())).accept(visitor);
-        LTLSolver.SolverResult res = LTLSolver.isSAT(SolverUtils.toSolverSyntax(implication));
+        Formula negImplication = GOperator.of(Conjunction.of(f1, f2.not())).accept(visitor);
+        LTLSolver.SolverResult res = LTLSolver.isSAT(SolverUtils.toSolverSyntax(negImplication));
         return res.equals(LTLSolver.SolverResult.UNSAT);
     }
 
     private boolean hasPath(int from, int to) {
-        if (from == to) return true;
-        HashSet<Integer> neighbors = adj.get(from);
-        if (neighbors == null || neighbors.isEmpty()) return false;
-        if (neighbors.contains(to)) return true;
-        // BFS to check for path
-        Queue<Integer> queue = new LinkedList<>();
-        Set<Integer> visited = new HashSet<>();
-        queue.add(from);
-        visited.add(from);
-        while (!queue.isEmpty()) {
-            int current = queue.poll();
-            HashSet<Integer> currentNeighbors = adj.get(current);
-            if (currentNeighbors != null) {
-                for (int neighbor : currentNeighbors) {
-                    if (neighbor == to) return true;
-                    if (!visited.contains(neighbor)) {
-                        visited.add(neighbor);
-                        queue.add(neighbor);
+        graphLock.readLock().lock();
+        try {
+            if (from == to) return true;
+            HashSet<Integer> neighbors = adj.get(from);
+            if (neighbors == null || neighbors.isEmpty()) return false;
+            if (neighbors.contains(to)) return true;
+            // BFS to check for path
+            Queue<Integer> queue = new LinkedList<>();
+            Set<Integer> visited = new HashSet<>();
+            queue.add(from);
+            visited.add(from);
+            while (!queue.isEmpty()) {
+                int current = queue.poll();
+                HashSet<Integer> currentNeighbors = adj.get(current);
+                if (currentNeighbors != null) {
+                    for (int neighbor : currentNeighbors) {
+                        if (neighbor == to) return true;
+                        if (!visited.contains(neighbor)) {
+                            visited.add(neighbor);
+                            queue.add(neighbor);
+                        }
                     }
                 }
             }
+            return false;
+        } finally {
+            graphLock.readLock().unlock();
         }
-        return false;
     }
 
     private void addSpecs(List<Tlsf> specs) throws IOException, InterruptedException {
@@ -78,30 +95,57 @@ public class TopologicalSort {
             formulae.add(spec.toFormula().formula());
         }
         int totalComparisons = specs.size() * (specs.size() - 1);
-        int skippedComparisons = 0;
-        int performedComparisons = 0;
+        AtomicInteger skippedComparisons = new AtomicInteger(0);
+        AtomicInteger performedComparisons = new AtomicInteger(0);
+        int parallelism = Math.max(2, Runtime.getRuntime().availableProcessors());
+        ExecutorService executor = Executors.newFixedThreadPool(parallelism);
+        CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
+        int submittedTasks = 0;
         for (int i = 0; i < specs.size(); i++) {
             for (int j = 0; j < specs.size(); j++) {
-                if (i != j) {
-                    // Skip if we already know i → j through transitivity
-                    if (hasPath(i, j)) {
-                        skippedComparisons++;
-                        System.out.print("Comparing " + (i+1) + " and " + (j+1) + " [skipped: " + skippedComparisons + "] \r");
-                        continue;
+                if (i == j) {
+                    continue;
+                }
+                final int from = i;
+                final int to = j;
+                completionService.submit(() -> {
+                    // re-check reachability under lock to preserve transitivity pruning across threads
+                    if (hasPath(from, to)) {
+                        printProgress(from, to, performedComparisons.get(), skippedComparisons.incrementAndGet(), totalComparisons);
+                        return null;
                     }
-                    if (implies(formulae.get(i), formulae.get(j))) {
-                        addEdge(i, j);
+                    if (implies(formulae.get(from), formulae.get(to))) {
+                        addEdge(from, to);
                     }
-                    performedComparisons++;
-                    System.out.print("Comparing " + (i+1) + " and " + (j+1) + " [skipped: " + skippedComparisons + "] \r");
+                    printProgress(from, to, performedComparisons.incrementAndGet(), skippedComparisons.get(), totalComparisons);
+                    return null;
+                });
+                submittedTasks++;
+            }
+        }
+        try {
+            for (int k = 0; k < submittedTasks; k++) {
+                try {
+                    completionService.take().get();
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        throw (IOException) cause;
+                    }
+                    if (cause instanceof InterruptedException) {
+                        throw (InterruptedException) cause;
+                    }
+                    throw new RuntimeException("Implication task failed", cause);
                 }
             }
-            System.out.println("Completed implication checks for spec " + (i+1) + "/" + specs.size() +
-                             " (performed: " + performedComparisons + ", skipped: " + skippedComparisons + ")");
+        } finally {
+            executor.shutdownNow();
         }
-        System.out.println("Total comparisons: performed=" + performedComparisons +
-                         ", skipped=" + skippedComparisons +
-                         ", reduction=" + (100.0 * skippedComparisons / totalComparisons) + "%");
+        int performed = performedComparisons.get();
+        int skipped = skippedComparisons.get();
+        System.out.println("Total comparisons: performed=" + performed +
+                         ", skipped=" + skipped +
+                         ", reduction=" + (100.0 * skipped / (double) totalComparisons) + "%");
     }
 
     private Map<Integer, Integer> removeEquivalentSpecs() {
@@ -171,5 +215,15 @@ public class TopologicalSort {
             sortedIndices.add(originalIndex);
         }
         return sortedIndices;
+    }
+
+    private void printProgress(int from, int to, int performed, int skipped, int total) {
+        int done = performed + skipped;
+        synchronized (System.out) {
+            System.out.print("[performed: " + performed + "/" + total + ", skipped: " + skipped + ", done: " + done + "] \r");
+            if (done == total) {
+                System.out.println();
+            }
+        }
     }
 }
