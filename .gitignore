@@ -16,6 +16,8 @@ cnf.dimacs
 
 # Ignora todos los archivos de texto
 *.txt
+!requirements.txt
+!requirements.lock.txt
 
 # Ignora los archivos relacionados a API keys
 .env

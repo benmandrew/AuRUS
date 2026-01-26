@@ -1,0 +1,7 @@
+chart_studio>=1.1.0
+matplotlib>=3.5
+numpy>=1.21
+pandas>=2.0
+plotly>=6.0
+scipy>=1.8.0
+termcolor>=3.0
