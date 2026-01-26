@@ -7,17 +7,11 @@ INFO {
 
 MAIN {
   INPUTS {
-	//environment variables
-	a;
-	r1;
-	r2;
-
+	  a;r1;r2;
   }
 
   OUTPUTS {
-	//System variables   
-	g1;
-	g2;
+	  g1;g2;
   }
 
   ASSUMPTIONS {
@@ -25,8 +19,8 @@ MAIN {
   }
 
   GUARANTEES {
-	G (r1 -> F g1);
-	G (r2 -> F g2);
-	G (!a -> (!g1 && !g2));
+    G ((!r1 ||  F (g1)));
+    G ((!r2 ||  F (g2)));
+    G ((a || (!g1 && !g2)));
   }
 }
