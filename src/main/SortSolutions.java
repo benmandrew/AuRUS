@@ -31,16 +31,23 @@ public class SortSolutions {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         String directoryName = "";
+        String outputFilename = "";
         int limit = -1;
         for (String arg : args) {
             if (arg.startsWith("-d=")) {
                 directoryName = arg.replace("-d=", "");
             } else if (arg.startsWith("-limit=")) {
                 limit = Integer.parseInt(arg.replace("-limit=", ""));
+            } else if (arg.startsWith("-out=")) {
+                outputFilename = arg.replace("-out=", "");
             }
         }
         if (directoryName.isEmpty()) {
             System.out.println("directory name is missing.");
+            System.exit(0);
+        }
+        if (outputFilename.isEmpty()) {
+            System.out.println("output file name is missing.");
             System.exit(0);
         }
         Path dirPath = Paths.get(directoryName);
@@ -57,9 +64,17 @@ public class SortSolutions {
         System.out.println("Starting topological sort based on implication...");
         TopologicalSort topoSort = new TopologicalSort(specifications.size());
         List<Integer> maximalElements = topoSort.getMaximalElements(specifications);
+        List<String> maximalSpecs = new ArrayList<>(maximalElements.size());
         for (int i = 0; i < maximalElements.size(); i++) {
-            System.out.println("Maximal spec " + (i + 1) + ": " +
-                    new File(specifications_filenames.get(maximalElements.get(i))).getName());
+            String path = Paths.get(specifications_filenames.get(maximalElements.get(i))).toAbsolutePath().toString();
+            maximalSpecs.add(path);
         }
+        Path outputPath = Paths.get(outputFilename);
+        if (outputPath.getParent() != null) {
+            Files.createDirectories(outputPath.getParent());
+        }
+        Files.write(outputPath, maximalSpecs);
+        System.out.println("Wrote " + maximalSpecs.size() + " maximal specifications to " + outputPath.toAbsolutePath());
+        System.out.println("Elapsed: " + topoSort.getElapsedDuration());
     }
 }

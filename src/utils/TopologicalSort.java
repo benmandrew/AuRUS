@@ -163,9 +163,10 @@ public class TopologicalSort {
         }
         int performed = performedComparisons.get();
         int skipped = skippedComparisons.get();
+        double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
         System.out.println("Total comparisons: performed=" + performed +
-                         ", skipped=" + skipped +
-                         ", reduction=" + (100.0 * skipped / (double) totalComparisons) + "%");
+                 ", skipped=" + skipped +
+                 ", reduction=" + String.format("%.1f", reductionPct) + "%");
     }
 
     private Map<Integer, Integer> removeEquivalentSpecs() {
@@ -250,6 +251,11 @@ public class TopologicalSort {
         }
     }
 
+    public String getElapsedDuration() {
+        long elapsed = System.currentTimeMillis() - startTimeMillis;
+        return formatDuration(elapsed);
+    }
+
     private void printMaxElementsProgress(int from, int to, int performed, int skipped, int total) {
         int done = performed + skipped;
         synchronized (System.out) {
@@ -331,9 +337,10 @@ public class TopologicalSort {
         }
         int performed = performedComparisons.get();
         int skipped = skippedComparisons.get();
+        double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
         System.out.println("Total comparisons: performed=" + performed +
-                         ", skipped=" + skipped +
-                         ", reduction=" + (100.0 * skipped / (double) totalComparisons) + "%");
+                 ", skipped=" + skipped +
+                 ", reduction=" + String.format("%.1f", reductionPct) + "%");
         List<Integer> maximalIndices = new ArrayList<>();
         for (int i = 0; i < specs.size(); i++) {
             if (!subsumed[i].get()) {
