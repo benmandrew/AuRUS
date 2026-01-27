@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+
+cd "$(dirname "$0")/.." || exit 1
 
 if [ "$#" -ne 2 ]; then
     echo "Usage: $0 <results_directory> <property>"

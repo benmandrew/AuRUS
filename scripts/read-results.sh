@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+
+cd "$(dirname "$0")/.." || exit 1
 
 TotalSol=0
 TotalWOrigSol=0

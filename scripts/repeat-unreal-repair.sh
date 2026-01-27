@@ -1,5 +1,19 @@
 #!/bin/bash
 
+set -euo pipefail
+
+cd "$(dirname "$0")" || exit 1
+
+pushd ../ || exit 1
+
+if ! ant compile
+then
+    echo "Build failed"
+    exit 1
+fi
+
+popd || exit 1
+
 # Fitness factors (as percentage)
 REAL_INIT=70
 SYN_INIT=10
@@ -13,8 +27,6 @@ FLAGS=(-Max=1000 -Gen=1000 -Pop=100 -k=20 -GATO=7200 -addA)
 # The number of runs per configuration
 N_RUNS_PER_CONFIG=100
 
-ant compile
-
 total_time=0
 for run in $(seq 1 $N_RUNS_PER_CONFIG); do
     for i in {0..20..5}; do
@@ -26,7 +38,7 @@ for run in $(seq 1 $N_RUNS_PER_CONFIG); do
 
         echo -n "  Running ${REAL_INIT}-${SYN_INIT}-${weak_tmp}-${strong_tmp}: "
         SECONDS=0
-        ./unreal-repair.sh "${FLAGS[@]}" "$OUT" "${REFERENCE[@]}" "$FACTORS" "$CASE_STUDY_SPEC" >/dev/null 2>&1
+        ./legacy/unreal-repair.sh "${FLAGS[@]}" "$OUT" "${REFERENCE[@]}" "$FACTORS" "$CASE_STUDY_SPEC" >/dev/null 2>&1
         echo "completed in $SECONDS seconds"
         total_time=$((total_time + SECONDS))
     done
