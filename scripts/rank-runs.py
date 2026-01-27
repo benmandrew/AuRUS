@@ -55,7 +55,7 @@ original_spec = normalise_tlsf((case_study_dir / "arbiter" / "arbiter.tlsf").rea
 original_spec = [line.strip() for line in original_spec]
 
 START_RANK = 0
-N_RANKS = 9999
+N_RANKS = 10
 
 def main():
     ap = argparse.ArgumentParser(description="Rank runs")
@@ -80,7 +80,7 @@ def main():
                 if line.startswith("//semantic: "):
                     semantic_score = float(line.split()[1])
             assert fitness_score is not None and syntactic_score is not None and semantic_score is not None, f"Missing scores in {spec_path}"
-            bisect.insort(scores, (fitness_score, syntactic_score, semantic_score, spec_path, "", contents), key=lambda x: -x[0])
+            bisect.insort(scores, (fitness_score, syntactic_score, semantic_score, spec_path, "", contents), key=lambda x: -x[1])
             add_repair(repair_map, contents, fitness_score, spec_path, spec_file.name)
     print("Overall ranking:")
     rank = 1
