@@ -106,42 +106,72 @@ public class TopologicalSort {
     }
 
     private void addSpecs(List<Tlsf> specs) throws IOException, InterruptedException {
+        List<String> formulae = getFormulae(specs);
+        int totalComparisons = specs.size() * (specs.size() - 1);
+        AtomicInteger skippedComparisons = new AtomicInteger(0);
+        AtomicInteger performedComparisons = new AtomicInteger(0);
+        startTimeMillis = System.currentTimeMillis();
+        runParallelComparisons(specs.size(), formulae, totalComparisons, skippedComparisons, performedComparisons, (from, to) -> {
+            if (hasPath(from, to)) {
+                printProgress(from, to, performedComparisons.get(), skippedComparisons.incrementAndGet(), totalComparisons);
+                return;
+            }
+            if (implies(formulae.get(from), formulae.get(to))) {
+                addEdge(from, to);
+            }
+            printProgress(from, to, performedComparisons.incrementAndGet(), skippedComparisons.get(), totalComparisons);
+        });
+        int performed = performedComparisons.get();
+        int skipped = skippedComparisons.get();
+        double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
+        System.out.println("Total comparisons: performed=" + performed +
+                 ", skipped=" + skipped +
+                 ", reduction=" + String.format("%.1f", reductionPct) + "%");
+    }
+
+    private List<String> getFormulae(List<Tlsf> specs) {
         List<String> formulae = new ArrayList<>();
         SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
         for (Tlsf spec : specs) {
             Formula f = spec.toFormula().formula();
             formulae.add(SolverUtils.toSolverSyntax(f.accept(visitor)));
         }
-        int totalComparisons = specs.size() * (specs.size() - 1);
-        AtomicInteger skippedComparisons = new AtomicInteger(0);
-        AtomicInteger performedComparisons = new AtomicInteger(0);
-        startTimeMillis = System.currentTimeMillis();
-        int parallelism = Math.max(2, Runtime.getRuntime().availableProcessors());
+        return formulae;
+    }
+
+    private interface ComparisonTask {
+        void compare(int from, int to) throws IOException, InterruptedException;
+    }
+
+    private void runParallelComparisons(int size, List<String> formulae, int totalComparisons,
+                                        AtomicInteger skippedComparisons, AtomicInteger performedComparisons,
+                                        ComparisonTask task) throws IOException, InterruptedException {
+        int parallelism = Runtime.getRuntime().availableProcessors();
         System.out.println("Using parallelism: " + parallelism);
-        ExecutorService executor = Executors.newFixedThreadPool(parallelism - 2);
+        ExecutorService executor = Executors.newWorkStealingPool();
         CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
-        int submittedTasks = 0;
-        for (int i = 0; i < specs.size(); i++) {
-            for (int j = 0; j < specs.size(); j++) {
-                if (i == j) {
-                    continue;
+        List<int[]> comparisonPairs = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i != j) {
+                    comparisonPairs.add(new int[]{i, j});
                 }
-                final int from = i;
-                final int to = j;
-                completionService.submit(() -> {
-                    // re-check reachability under lock to preserve transitivity pruning across threads
-                    if (hasPath(from, to)) {
-                        printProgress(from, to, performedComparisons.get(), skippedComparisons.incrementAndGet(), totalComparisons);
-                        return null;
-                    }
-                    if (implies(formulae.get(from), formulae.get(to))) {
-                        addEdge(from, to);
-                    }
-                    printProgress(from, to, performedComparisons.incrementAndGet(), skippedComparisons.get(), totalComparisons);
-                    return null;
-                });
-                submittedTasks++;
             }
+        }
+        Collections.shuffle(comparisonPairs);
+        int submittedTasks = 0;
+        for (int[] pair : comparisonPairs) {
+            final int from = pair[0];
+            final int to = pair[1];
+            completionService.submit(() -> {
+                try {
+                    task.compare(from, to);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            });
+            submittedTasks++;
         }
         try {
             for (int k = 0; k < submittedTasks; k++) {
@@ -161,12 +191,6 @@ public class TopologicalSort {
         } finally {
             executor.shutdownNow();
         }
-        int performed = performedComparisons.get();
-        int skipped = skippedComparisons.get();
-        double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
-        System.out.println("Total comparisons: performed=" + performed +
-                 ", skipped=" + skipped +
-                 ", reduction=" + String.format("%.1f", reductionPct) + "%");
     }
 
     private Map<Integer, Integer> removeEquivalentSpecs() {
@@ -274,12 +298,7 @@ public class TopologicalSort {
     }
 
     public List<Integer> getMaximalElements(List<Tlsf> specs) throws IOException, InterruptedException {
-        List<String> formulae = new ArrayList<>();
-        SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
-        for (Tlsf spec : specs) {
-            Formula f = spec.toFormula().formula();
-            formulae.add(SolverUtils.toSolverSyntax(f.accept(visitor)));
-        }
+        List<String> formulae = getFormulae(specs);
         int totalComparisons = specs.size() * (specs.size() - 1);
         AtomicInteger skippedComparisons = new AtomicInteger(0);
         AtomicInteger performedComparisons = new AtomicInteger(0);
@@ -288,53 +307,18 @@ public class TopologicalSort {
             subsumed[i] = new AtomicBoolean(false);
         }
         startTimeMillis = System.currentTimeMillis();
-        int parallelism = Math.max(2, Runtime.getRuntime().availableProcessors());
-        System.out.println("Using parallelism: " + parallelism);
-        ExecutorService executor = Executors.newFixedThreadPool(parallelism - 2);
-        CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
-        int submittedTasks = 0;
-        for (int i = 0; i < specs.size(); i++) {
-            for (int j = 0; j < specs.size(); j++) {
-                if (i == j) {
-                    continue;
-                }
-                final int from = i;
-                final int to = j;
-                completionService.submit(() -> {
-                    // Skip if target is already subsumed
-                    if (subsumed[to].get()) {
-                        skippedComparisons.incrementAndGet();
-                        printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
-                        return null;
-                    }
-                    if (implies(formulae.get(from), formulae.get(to))) {
-                        subsumed[to].set(true);
-                    }
-                    performedComparisons.incrementAndGet();
-                    printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
-                    return null;
-                });
-                submittedTasks++;
+        runParallelComparisons(specs.size(), formulae, totalComparisons, skippedComparisons, performedComparisons, (from, to) -> {
+            if (subsumed[from].get() || subsumed[to].get()) {
+                skippedComparisons.incrementAndGet();
+                printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
+                return;
             }
-        }
-        try {
-            for (int k = 0; k < submittedTasks; k++) {
-                try {
-                    completionService.take().get();
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof IOException) {
-                        throw (IOException) cause;
-                    }
-                    if (cause instanceof InterruptedException) {
-                        throw (InterruptedException) cause;
-                    }
-                    throw new RuntimeException("Implication task failed", cause);
-                }
+            if (implies(formulae.get(from), formulae.get(to))) {
+                subsumed[to].set(true);
             }
-        } finally {
-            executor.shutdownNow();
-        }
+            performedComparisons.incrementAndGet();
+            printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
+        });
         int performed = performedComparisons.get();
         int skipped = skippedComparisons.get();
         double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
