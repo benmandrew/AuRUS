@@ -264,7 +264,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
 //		System.out.print(numOfLostModels + " " + numOfModels + " ");
         if (res.doubleValue() > 1.0d) {
             System.out.println("\nWARNING: increase the bound. ");
-            return 1.0d;
+            return 0.0d;
         }
         return value;
     }
@@ -293,7 +293,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         double value = 1.0d - res.doubleValue();
         if (res.doubleValue() > 1.0d) {
             System.out.println("\nWARNING: increase the bound. ");
-            return 1.0d;
+            return 0.0d;
         }
         return value;
     }
