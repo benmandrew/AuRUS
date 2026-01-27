@@ -55,7 +55,7 @@ original_spec = normalise_tlsf((case_study_dir / "arbiter" / "arbiter.tlsf").rea
 original_spec = [line.strip() for line in original_spec]
 
 START_RANK = 0
-N_RANKS = 10
+N_RANKS = 6
 
 def main():
     ap = argparse.ArgumentParser(description="Rank runs")

@@ -4,11 +4,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 
-if ! ant compile
-then
-    echo "Build failed"
-    exit 1
-fi
+ant compile
 
 profile=0
 args=()
@@ -30,5 +26,4 @@ java \
     -Djava.library.path=/usr/local/lib \
     -cp "bin:lib/commons-math3-3.6.1.jar:lib/rltlconv.jar:lib/JFLAP-7.0_With_Source.jar:lib/owl-18.10-snapshot.jar:lib/ejml/ejml-core-0.34.jar:lib/ejml/ejml-cdense-0.34.jar:lib/ejml/ejml-ddense-0.34.jar:lib/ejml/ejml-fdense-0.34.jar:lib/ejml/ejml-simple-0.34.jar:lib/ejml/ejml-zdense-0.34.jar:lib/ejml/ejml-dsparse-0.34.jar:lib/ejml/ejml-experimental-0.34.jar:lib/ltl2buchi.jar" \
     "${agent_opts[@]}" \
-    main.SortSolutions \
-    "${args[@]}"
+    main.Main "${args[@]}"
