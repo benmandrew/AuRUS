@@ -55,6 +55,9 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
         this.population = population;
         this.fitnessFunc = fitnessFunc;
         this.chromosomesComparator = new ChromosomesComparator();
+        this.population.asList().parallelStream().forEach(chr -> {
+            this.fitnessFunc.calculate(chr);
+        });
         this.population.sortPopulationByFitness(this.chromosomesComparator);
         this.filterPredicate = filterPredicate;
     }
@@ -106,6 +109,10 @@ public class GeneticAlgorithm<C extends Chromosome<C>, T extends Comparable<T>> 
         if (this.filterPredicate != null) {
             newPopulation.filter(this.filterPredicate);
         }
+        // Parallel fitness calculation for all chromosomes in newPopulation
+        newPopulation.asList().parallelStream().forEach(chr -> {
+            this.fitnessFunc.calculate(chr);
+        });
         newPopulation.sortPopulationByFitness(this.chromosomesComparator);
         this.population = newPopulation;
     }

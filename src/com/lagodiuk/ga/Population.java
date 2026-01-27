@@ -77,4 +77,8 @@ public class Population<C extends Chromosome<C>> implements Iterable<C> {
     public void filter(Predicate<C> predicate) {
         this.chromosomes.removeIf(predicate.negate());
     }
+
+    public List<C> asList() {
+        return chromosomes;
+    }
 }
