@@ -13,11 +13,14 @@ import solvers.StrixHelper;
 import utils.SolverUtils;
 import utils.TlsfUtils;
 
+import java.util.HashMap;
 import java.util.function.Predicate;
 
 public class SpecificationFiltering {
     private Tlsf original;
     private final SolverSyntaxOperatorReplacer visitor = new SolverSyntaxOperatorReplacer();
+
+    private HashMap<Tlsf, Boolean> filter_cache = new HashMap<>();
 
     public SpecificationFiltering(Tlsf original) {
         this.original = original;
@@ -70,8 +73,13 @@ public class SpecificationFiltering {
 
     public Predicate<SpecificationChromosome> get_predicate() {
         return chromosome -> {
+            if (filter_cache.containsKey(chromosome.spec)) {
+                return filter_cache.get(chromosome.spec);
+            }
             try {
-                return this.is_weakening_of_original(chromosome) && this.is_well_separated(chromosome);
+                boolean result = this.is_weakening_of_original(chromosome) && this.is_well_separated(chromosome);
+                filter_cache.put(chromosome.spec, result);
+                return result;
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
                 return false;
