@@ -152,9 +152,6 @@ public class Main {
         else
             ga.run(tlsf, status_factor, syntactic_factor, strengthen_semantic_factor, weaken_semantic_factor);
 
-//		if (ga.solutions.isEmpty())
-//			System.exit(0);
-
         //compute statistics
         double bestFitness = 0.0d;
         double sumFitness = 0.0d;
@@ -191,61 +188,6 @@ public class Main {
         System.out.println("Num. of Solutions:" + solutions.size() + "\n");
         System.out.printf("Best fitness: %.2f\n%n", bestFitness);
         System.out.printf("AVG fitness: %.2f\n%n", (!ga.solutions.isEmpty()) ? (sumFitness / (double) ga.solutions.size()) : 0);
-        GenuineSolutionsAnalysis.calculateOriginalStatistics(tlsf, solutions);
-        System.out.println("Num. of Solutions equal to original:" + GenuineSolutionsAnalysis.equalToOriginalSolutions.size() + "\n");
-        System.out.println("Num. of Solutions weaker than original:" + GenuineSolutionsAnalysis.moreGeneralThanOriginalSolutions.size() + "\n");
-        System.out.println("Num. of Solutions stronger than original:" + GenuineSolutionsAnalysis.lessGeneralThanOriginalSolutions.size() + "\n");
-        double genuineBestFitness = 0.0d;
-        double genuineAvgFitness = 0.0d;
-        double moregeneralBestFitness = 0.0d;
-        double moregeneralAvgFitness = 0.0d;
-        double lessgeneralBestFitness = 0.0d;
-        double lessgeneralAvgFitness = 0.0d;
-        double genuinesSumFitness = 0.0d;
-        double moregeneralSumFitness = 0.0d;
-        double lessgeneralSumFitness = 0.0d;
-        if (!referenceSolutions.isEmpty()) {
-            System.out.println("Computing genuine statistics...");
-            //check if some genuine solution has been found
-            GenuineSolutionsAnalysis.calculateGenuineStatistics(referenceSolutions, solutions);
-
-            for (Integer index : GenuineSolutionsAnalysis.genuineSolutionsFound) {
-                SpecificationChromosome c = ga.solutions.get(index);
-                genuinesSumFitness += c.fitness;
-                if (c.fitness > genuineBestFitness)
-                    genuineBestFitness = c.fitness;
-            }
-            genuineAvgFitness = genuinesSumFitness / (double) GenuineSolutionsAnalysis.genuineSolutionsFound.size();
-            for (Integer index : GenuineSolutionsAnalysis.moreGeneralSolutions) {
-                SpecificationChromosome c = ga.solutions.get(index);
-                moregeneralSumFitness += c.fitness;
-                if (c.fitness > moregeneralBestFitness)
-                    moregeneralBestFitness = c.fitness;
-            }
-            moregeneralAvgFitness = moregeneralSumFitness / (double) GenuineSolutionsAnalysis.moreGeneralSolutions.size();
-            for (Integer index : GenuineSolutionsAnalysis.lessGeneralSolutions) {
-                SpecificationChromosome c = ga.solutions.get(index);
-                lessgeneralSumFitness += c.fitness;
-                if (c.fitness > lessgeneralBestFitness)
-                    lessgeneralBestFitness = c.fitness;
-            }
-            lessgeneralAvgFitness = lessgeneralSumFitness / (double) GenuineSolutionsAnalysis.lessGeneralSolutions.size();
-
-            System.out.println("Genuine Solutions: " + GenuineSolutionsAnalysis.genuineSolutionsFound.size() + "\n");
-            System.out.println("Genuine Solutions found: " + GenuineSolutionsAnalysis.genuineSolutionsFound.toString() + "\n");
-            System.out.printf("Best Genuine fitness: %.2f\n%n", genuineBestFitness);
-            System.out.printf("AVG Genuine fitness: %.2f\n%n", genuineAvgFitness);
-            System.out.println("Weaker Solutions:" + GenuineSolutionsAnalysis.moreGeneralSolutions.size() + "\n");
-            System.out.println("Weaker Solutions found:" + GenuineSolutionsAnalysis.moreGeneralSolutions.toString() + "\n");
-            System.out.printf("Best Weaker fitness: %.2f\n%n", moregeneralBestFitness);
-            System.out.printf("AVG Weaker fitness: %.2f\n%n", moregeneralAvgFitness);
-            System.out.println("Stronger Solutions:" + GenuineSolutionsAnalysis.lessGeneralSolutions.size() + "\n");
-            System.out.println("Stronger Solutions found:" + GenuineSolutionsAnalysis.lessGeneralSolutions.toString() + "\n");
-            System.out.printf("Best Stronger fitness: %.2f\n%n", lessgeneralBestFitness);
-            System.out.printf("AVG Stronger fitness: %.2f\n%n", lessgeneralAvgFitness);
-            System.out.printf("Genuine precision: %.2f \n%n", ((double) GenuineSolutionsAnalysis.genuineSolutionsFound.size() / (double) referenceSolutions.size()));
-
-        }
 
         //saving the time execution and configuration details
         File file = new File(directoryName + "/out.txt");
@@ -254,24 +196,6 @@ public class Main {
         bw.write("Num. of Solutions:   " + solutions.size() + "\n");
         bw.write(String.format("Best fitness: %.2f\n", bestFitness));
         bw.write(String.format("AVG fitness: %.2f\n", (!ga.solutions.isEmpty()) ? (sumFitness / (double) ga.solutions.size()) : 0));
-        bw.write("Num. of Solutions equal to original:" + GenuineSolutionsAnalysis.equalToOriginalSolutions.size() + "\n");
-        bw.write("Num. of Solutions weaker than original:" + GenuineSolutionsAnalysis.moreGeneralThanOriginalSolutions.size() + "\n");
-        bw.write("Num. of Solutions stronger than original:" + GenuineSolutionsAnalysis.lessGeneralThanOriginalSolutions.size() + "\n");
-        if (!referenceSolutions.isEmpty()) {
-            bw.write("Genuine Solutions:   " + GenuineSolutionsAnalysis.genuineSolutionsFound.size() + "\n");
-            bw.write("Genuine Solutions found:" + GenuineSolutionsAnalysis.genuineSolutionsFound.toString() + "\n");
-            bw.write(String.format("Best Genuine fitness: %.2f\n", genuineBestFitness));
-            bw.write(String.format("AVG Genuine fitness: %.2f\n", genuineAvgFitness));
-            bw.write("Weaker Solutions:   " + GenuineSolutionsAnalysis.moreGeneralSolutions.size() + "\n");
-            bw.write("Weaker Solutions found:" + GenuineSolutionsAnalysis.moreGeneralSolutions.toString() + "\n");
-            bw.write(String.format("Best Weaker fitness: %.2f\n", moregeneralBestFitness));
-            bw.write(String.format("AVG Weaker fitness: %.2f\n", moregeneralAvgFitness));
-            bw.write("Stronger Solutions:    " + GenuineSolutionsAnalysis.lessGeneralSolutions.size() + "\n");
-            bw.write("Stronger Solutions found:" + GenuineSolutionsAnalysis.lessGeneralSolutions.toString() + "\n");
-            bw.write(String.format("Best Stronger fitness: %.2f\n", lessgeneralBestFitness));
-            bw.write(String.format("AVG Stronger fitness: %.2f\n", lessgeneralAvgFitness));
-            bw.write(String.format("Genuine precision: %.2f \n", ((double) GenuineSolutionsAnalysis.genuineSolutionsFound.size() / (double) referenceSolutions.size())));
-        }
 
         bw.write(ga.print_execution_time() + "\n");
         bw.write(ga.print_config() + "\n");

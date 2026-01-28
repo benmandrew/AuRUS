@@ -76,13 +76,6 @@ public class SpecificationGeneticAlgorithm {
             }
             System.out.println();
         }
-        System.out.println("Realizable Specifications:");
-        for (int i = 0; i < solutions.size(); i++) {
-            SpecificationChromosome s = solutions.get(i);
-            System.out.println();
-            System.out.printf("Solution N: %s\tFitness: %.2f%n", i, s.fitness);
-            System.out.println(TlsfUtils.adaptTLSFSpec(s.spec));
-        }
         finalExecutionTime = Instant.now();
         System.out.println(print_execution_time());
         System.out.println(print_config());
