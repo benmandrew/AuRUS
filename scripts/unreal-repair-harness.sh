@@ -53,13 +53,18 @@ STRONG=10
 FACTORS="-factors=$(bc<<<"scale=2; ${REAL}/100"),$(bc<<<"scale=2; ${SYNTACTIC}/100"),$(bc<<<"scale=2; ${WEAK}/100"),$(bc<<<"scale=2; ${STRONG}/100")"
 
 
-N_RUNS=10
-FLAGS=(-Max=1000 -Gen=1000 -Pop=100 -k=30 -GATO=7200 -addA)
+N_RUNS=50
+FLAGS=(-Max=1000 -Gen=1000 -Pop=100 -k=10 -GATO=7200 -addA)
 OUT_DIR=result/
 CASE_STUDY_SPECS=(
-    "case-studies/minepump/minepump.tlsf"
-    "case-studies/lily02/lilydemo02.tlsf"
+    # "case-studies/minepump/minepump.tlsf"
+    # "case-studies/lily02/lilydemo02.tlsf"
     "case-studies/lift/Lift.tlsf"
+    # "case-studies/RG1/RG1.tlsf"
+    # "case-studies/RG2/RG2.tlsf"
+    # "case-studies/GyroUnrealizable_Var1/GyroUnrealizable_Var1_710_GyroAspect_unrealizable.tlsf"
+    # "case-studies/GyroUnrealizable_Var1/GyroUnrealizable_Var2_710_GyroAspect_unrealizable.tlsf"
+    # "case-studies/HumanoidLTL_531/HumanoidLTL_531_Humanoid_unrealizable.tlsf"
 )
 
 CSV_FILE="$OUT_DIR/run-times.csv"
@@ -75,7 +80,10 @@ for case_study_spec in "${CASE_STUDY_SPECS[@]}"; do
     base_name="$(basename "$case_study_spec" .tlsf)"
     case_out_dir="$OUT_DIR/$base_name"
     mkdir -p "$case_out_dir"
-
+    log_file="$case_out_dir/log.txt"
+    if [[ -f "$log_file" ]]; then
+        rm -f "$log_file"
+    fi
     echo "Running repairs for case study: $case_study_spec"
 
     for ((run_index=1; run_index<=N_RUNS; run_index++)); do
@@ -85,11 +93,11 @@ for case_study_spec in "${CASE_STUDY_SPECS[@]}"; do
         SECONDS=0
 
         start_seconds=$SECONDS
-        ./scripts/unreal-repair.sh "${FLAGS[@]}" "-out=$case_iter_dir" "${REFERENCE[@]}" "$FACTORS" "$case_study_spec" > /dev/null
+        ./scripts/unreal-repair.sh "${FLAGS[@]}" "-out=$case_iter_dir" "${REFERENCE[@]}" "$FACTORS" "$case_study_spec" >> "$log_file" 2>&1
         unreal_repair_seconds=$((SECONDS - start_seconds))
 
         start_seconds=$SECONDS
-        ./scripts/sort-solutions.sh -d="$case_iter_dir" -out="$case_iter_dir/maximal-specs.txt" > /dev/null
+        ./scripts/sort-solutions.sh -d="$case_iter_dir" -out="$case_iter_dir/maximal-specs.txt" >> "$log_file" 2>&1
         sort_solutions_seconds=$((SECONDS - start_seconds))
 
         remove_non_maximal_specs "$case_iter_dir"
