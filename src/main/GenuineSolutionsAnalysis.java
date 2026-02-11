@@ -77,8 +77,10 @@ public class GenuineSolutionsAnalysis {
                             }
                         }
                         sol_fitness.add(value);
+                        in.close();
                     }
                 }
+                walk.close();
             }
         }
         calculateGenuineStatistics(genuineSolutions, solutions);

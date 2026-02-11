@@ -3,6 +3,7 @@ package main;
 import modelcounter.CountREModels;
 import modelcounter.CountRltlConv;
 import modelcounter.EmersonLeiAutomatonBasedModelCounting;
+import org.apache.commons.math3.fraction.BigFraction;
 import owl.ltl.*;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.NormalForms;
@@ -110,7 +111,10 @@ public class ModelCountingRanking {
     static void runPreciseMC(List<Formula> formulas, List<String> vars, int bound, String outname) throws IOException, InterruptedException {
         long initialTOTALTime = System.currentTimeMillis();
         int num_of_formulas = formulas.size();
-        List<BigInteger>[] solutions = new List[num_of_formulas];
+        List<List<BigInteger>> solutions = new ArrayList<>(num_of_formulas);
+        for (int i = 0; i < num_of_formulas; i++) {
+            solutions.add(null);
+        }
         List<Integer> timeout_formulas = new LinkedList<>();
         int index = 0;
         System.out.println("Counting...");
@@ -131,7 +135,7 @@ public class ModelCountingRanking {
                     String filename = outname.replace(".out", index + ".out");
                     writeFile(filename, result, time);
                 }
-                solutions[index] = result;
+                solutions.set(index, result);
             } else {
                 System.out.println("MC Timeout reached.");
                 timeout_formulas.add(index);
@@ -139,32 +143,31 @@ public class ModelCountingRanking {
             index++;
         }
         System.out.println("Formula ranking for bounds 1..k");
-        SortedMap<BigInteger, List<Integer>>[] ranking = new TreeMap[bound];
+        List<SortedMap<BigInteger, List<Integer>>> ranking = new ArrayList<>(bound);
         for (int k = 0; k < bound; k++) {
             List<BigInteger> k_values = new LinkedList<>();
             for (int i = 0; i < num_of_formulas; i++) {
-                if (solutions[i] != null)
-                    k_values.add(solutions[i].get(k));
+                if (solutions.get(i) != null)
+                    k_values.add(solutions.get(i).get(k));
                 else
                     k_values.add(null);
             }
-
             SortedMap<BigInteger, List<Integer>> order = getBigIntegerListSortedMap(num_of_formulas, timeout_formulas, k_values);
-            ranking[k] = order;
+            ranking.add(order);
             System.out.println((k + 1) + " " + order.values());
         }
-        if (outname != null)
+        if (outname != null) {
             writeRanking(outname, ranking);
-
+        }
         System.out.println("Global ranking...");
         List<BigInteger> totalNumOfModels = new LinkedList<>();
         StringBuilder sumTotalNumOfModels = new StringBuilder();
         for (int i = 0; i < num_of_formulas; i++) {
             BigInteger f_result = BigInteger.ZERO;
-            if (solutions[i] == null)
+            if (solutions.get(i) == null)
                 f_result = null;
             else {
-                for (BigInteger v : solutions[i])
+                for (BigInteger v : solutions.get(i))
                     f_result = f_result.add(v);
             }
             sumTotalNumOfModels.append(i).append(" ").append(f_result).append("\n");
@@ -442,8 +445,7 @@ public class ModelCountingRanking {
     static BigInteger countExhaustiveAutomataBasedPrefixes(Formula f, List<String> vars, int bound) {
         LabelledFormula form_lost = LabelledFormula.of(f, vars);
 //        MatrixBigIntegerModelCounting counter = new MatrixBigIntegerModelCounting(form_lost,false);
-        EmersonLeiAutomatonBasedModelCounting counter = new EmersonLeiAutomatonBasedModelCounting(form_lost);
-
+        EmersonLeiAutomatonBasedModelCounting<BigFraction> counter = new EmersonLeiAutomatonBasedModelCounting<>(form_lost);
         return counter.count(bound);
     }
 
@@ -466,7 +468,7 @@ public class ModelCountingRanking {
         bw.close();
     }
 
-    private static void writeRanking(String filename, SortedMap<BigInteger, List<Integer>>[] ranking) throws IOException {
+    private static void writeRanking(String filename, List<SortedMap<BigInteger, List<Integer>>> ranking) throws IOException {
         File file = new File(filename);
         FileWriter fw = new FileWriter(file.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);

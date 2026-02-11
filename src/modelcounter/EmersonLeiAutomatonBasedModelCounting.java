@@ -16,6 +16,7 @@ import owl.run.DefaultEnvironment;
 import owl.translations.delag.DelagBuilder;
 
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -42,7 +43,8 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
         } catch (TimeoutException e) {
             System.out.println("EmersonLeiAutomatonBasedModelCounting: TIMEOUT parsing.");
         } catch (InterruptedException | ExecutionException e) {
-            System.err.println("EmersonLeiAutomatonBasedModelCounting: ERROR while parsing. " + e.getMessage());
+            System.err.println("EmersonLeiAutomatonBasedModelCounting: ERROR while parsing.");
+            e.printStackTrace();
         }
     }
 
@@ -69,6 +71,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
         } catch (TimeoutException e) {
             System.out.println("EmersonLeiAutomatonBasedModelCounting::count TIMEOUT.");
         } catch (InterruptedException | ExecutionException e) {
+            // OWL Delag translation has a bug that can cause an exception. We catch it here and return null to indicate that the counting failed.
             System.err.println("EmersonLeiAutomatonBasedModelCounting::count ERROR. " + e.getMessage());
         }
         return null;
@@ -76,30 +79,24 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
 
     private BigInteger countModels() {
         T = buildTransferMatrix();
-//		printMatrix(T);
-        int n = T.getRowDimension();
 
         //set initial states
-        FieldMatrix u = buildInitialStates();
+        FieldMatrix<BigFraction> u = buildInitialStates();
 
         //set final states
-        FieldMatrix v = buildFinalStates();
+        FieldMatrix<BigFraction> v = buildFinalStates();
 
         // count models
-        FieldMatrix T_res = T.power(BOUND);
-//		printMatrix(T_res);
-        FieldMatrix reachable = u.multiply(T_res);
-//		System.out.println("reachable: " + reachable.toString());
-        FieldMatrix result = reachable.multiply(v);
-//		System.out.println("result: " + result.toString());
+        FieldMatrix<BigFraction> T_res = T.power(BOUND);
+        FieldMatrix<BigFraction> reachable = u.multiply(T_res);
+        FieldMatrix<BigFraction> result = reachable.multiply(v);
         BigFraction value = (BigFraction) result.getEntry(0, 0);
         BigInteger count = value.getNumerator();
         return count;
     }
 
-    public FieldMatrix buildTransferMatrix() {
-
-        int n = automaton.size();
+    public FieldMatrix<BigFraction> buildTransferMatrix() {
+        int n = states.length;
         BigFraction[][] pData = new BigFraction[n][n];
         for (int i = 0; i < n; i++) {
             S si = (S) states[i];
@@ -121,10 +118,10 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
-    public FieldMatrix buildInitialStates() {
+    public FieldMatrix<BigFraction> buildInitialStates() {
         int n = T.getRowDimension();
         //set initial states
-        FieldMatrix u = createMatrix(1, n);
+        FieldMatrix<BigFraction> u = createMatrix(1, n);
         Set<S> initial_states = automaton.initialStates();
         for (int j = 0; j < n; j++) {
             if (initial_states.contains(states[j])) {
@@ -135,11 +132,12 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
-    public FieldMatrix buildFinalStates() {
+    public FieldMatrix<BigFraction> buildFinalStates() {
         int n = T.getRowDimension();
         //set final states
         Set<S> final_states = new HashSet<>();
-        for (S s : automaton.states()) {
+        for (Object sObj : states) {
+            S s = (S) sObj;
             Set<Edge<S>> edges = automaton.edges(s);
             for (Edge<S> edge : edges) {
                 //check if it is an acceptance transition
@@ -152,7 +150,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
             }
         }
 
-        FieldMatrix v = createMatrix(n, 1);
+        FieldMatrix<BigFraction> v = createMatrix(n, 1);
         for (int i = 0; i < n; i++) {
             if (final_states.contains(states[i])) {
                 v.addToEntry(i, 0, new BigFraction(1));
@@ -161,7 +159,7 @@ public class EmersonLeiAutomatonBasedModelCounting<S> {
         return v;
     }
 
-    public FieldMatrix createMatrix(int row, int column) {
+    public FieldMatrix<BigFraction> createMatrix(int row, int column) {
         BigFraction[][] pData = new BigFraction[row][column];
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {

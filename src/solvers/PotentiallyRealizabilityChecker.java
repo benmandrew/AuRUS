@@ -49,7 +49,6 @@ public class PotentiallyRealizabilityChecker<S> {
         // Convert the ltl formula to an automaton with OWL
         DelagBuilder translator = new DelagBuilder(DefaultEnvironment.standard());
         automaton = (Automaton<S, EmersonLeiAcceptance>) translator.apply(formula);
-        var environment = DefaultEnvironment.standard();
         return "OK";
     }
 

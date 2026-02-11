@@ -5,6 +5,7 @@ import com.lagodiuk.ga.Fitness;
 import geneticalgorithm.SpecificationChromosome.SPEC_STATUS;
 import main.Settings;
 import modelcounter.EmersonLeiAutomatonBasedModelCounting;
+import org.apache.commons.math3.fraction.BigFraction;
 import owl.ltl.*;
 import owl.ltl.rewriter.SyntacticSimplifier;
 import owl.ltl.tlsf.Tlsf;
@@ -184,7 +185,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
                                 RealizabilitySolverResult rel = RealizabilitySolverResult.UNREALIZABLE;
                                 if (Settings.check_STRONG_SAT) {
                                     // check for strong satisfiability
-                                    PotentiallyRealizabilityChecker strong_sat_solver = new PotentiallyRealizabilityChecker<>(spec.toFormula());
+                                    PotentiallyRealizabilityChecker<Object> strong_sat_solver = new PotentiallyRealizabilityChecker<>(spec.toFormula());
                                     Boolean strong_sat_res = strong_sat_solver.checkPotentiallyRealizability();
                                     if (strong_sat_res != null && strong_sat_res)
                                         rel = RealizabilitySolverResult.REALIZABLE;
@@ -213,7 +214,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
         if (simplified == BooleanConstant.FALSE)
             return BigInteger.ZERO;
         LabelledFormula simp_formula = LabelledFormula.of(simplified, formula.variables());
-        EmersonLeiAutomatonBasedModelCounting counter = new EmersonLeiAutomatonBasedModelCounting<>(simp_formula);
+        EmersonLeiAutomatonBasedModelCounting<BigFraction> counter = new EmersonLeiAutomatonBasedModelCounting<>(simp_formula);
         return counter.count(Settings.MC_BOUND);
     }
 
@@ -275,7 +276,7 @@ public class AutomataBasedModelCountingSpecificationFitness implements Fitness<S
             return 0.0d;
 
         BigInteger refinedNumOfModels = countModels(refined.toFormula());
-        if (Objects.equals(refinedNumOfModels, BigInteger.ZERO))
+        if (refinedNumOfModels == null || Objects.equals(refinedNumOfModels, BigInteger.ZERO))
             return 0.0d;
 
         Formula original_formula = original.toFormula().formula();

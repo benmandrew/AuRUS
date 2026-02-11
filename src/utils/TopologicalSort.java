@@ -90,6 +90,9 @@ public class TopologicalSort {
 
     private void printProgress(int from, int to, int performed, int skipped, int total) {
         int done = performed + skipped;
+        if (done % 100 != 0 && done != total) {
+            return;
+        }
         synchronized (System.out) {
             long elapsed = System.currentTimeMillis() - startTimeMillis;
             String timeEstimate = "";
@@ -148,7 +151,7 @@ public class TopologicalSort {
                                         ComparisonTask task) throws IOException, InterruptedException {
         int parallelism = Runtime.getRuntime().availableProcessors();
         System.out.println("Using parallelism: " + parallelism);
-        ExecutorService executor = Executors.newWorkStealingPool();
+        ExecutorService executor = Executors.newWorkStealingPool(parallelism);
         CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
         List<int[]> comparisonPairs = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -282,6 +285,9 @@ public class TopologicalSort {
 
     private void printMaxElementsProgress(int from, int to, int performed, int skipped, int total) {
         int done = performed + skipped;
+        if (done % 100 != 0 && done != total) {
+            return;
+        }
         synchronized (System.out) {
             long elapsed = System.currentTimeMillis() - startTimeMillis;
             String timeEstimate = "";
@@ -290,7 +296,7 @@ public class TopologicalSort {
                 long remaining = estimatedTotal - elapsed;
                 timeEstimate = String.format(", ETA: %s", formatDuration(remaining));
             }
-            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \r");
+            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \n");
             if (done == total) {
                 System.out.println();
             }

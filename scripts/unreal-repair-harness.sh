@@ -39,6 +39,30 @@ remove_non_maximal_specs() {
         done
 }
 
+#######################################
+# Check that all spec files exist and print status.
+# Globals:
+#   None
+# Arguments:
+#   Name of array variable containing spec file paths
+#######################################
+check_spec_files_exist() {
+    local -n specs_ref="$1"
+    local missing_any=false
+    local case_study_spec
+    for case_study_spec in "${specs_ref[@]}"; do
+        if [[ -f "$case_study_spec" ]]; then
+            printf '\033[32m✓\033[0m %s\n' "$case_study_spec"
+        else
+            printf '\033[31m✗\033[0m %s\n' "$case_study_spec" >&2
+            missing_any=true
+        fi
+    done
+    if [[ "$missing_any" == true ]]; then
+        return 1
+    fi
+}
+
 if ! ant compile; then
     echo "Build failed" >&2
     exit 1
@@ -52,20 +76,19 @@ STRONG=10
 # Convert percentages to factors between 0 and 1
 FACTORS="-factors=$(bc<<<"scale=2; ${REAL}/100"),$(bc<<<"scale=2; ${SYNTACTIC}/100"),$(bc<<<"scale=2; ${WEAK}/100"),$(bc<<<"scale=2; ${STRONG}/100")"
 
-
-N_RUNS=50
+N_RUNS=30
 FLAGS=(-Max=1000 -Gen=1000 -Pop=100 -k=10 -GATO=7200 -addA)
-OUT_DIR=result/
-CASE_STUDY_SPECS=(
-    # "case-studies/minepump/minepump.tlsf"
-    # "case-studies/lily02/lilydemo02.tlsf"
-    "case-studies/lift/Lift.tlsf"
-    # "case-studies/RG1/RG1.tlsf"
-    # "case-studies/RG2/RG2.tlsf"
-    # "case-studies/GyroUnrealizable_Var1/GyroUnrealizable_Var1_710_GyroAspect_unrealizable.tlsf"
-    # "case-studies/GyroUnrealizable_Var1/GyroUnrealizable_Var2_710_GyroAspect_unrealizable.tlsf"
-    # "case-studies/HumanoidLTL_531/HumanoidLTL_531_Humanoid_unrealizable.tlsf"
-)
+OUT_DIR=result
+SPEC_LIST_FILE="case-study-specs.txt"
+if [[ ! -f "$SPEC_LIST_FILE" ]]; then
+    echo "Spec list file not found: $SPEC_LIST_FILE" >&2
+    exit 1
+fi
+mapfile -t CASE_STUDY_SPECS < "$SPEC_LIST_FILE"
+
+if ! check_spec_files_exist CASE_STUDY_SPECS; then
+    exit 1
+fi
 
 CSV_FILE="$OUT_DIR/run-times.csv"
 mkdir -p "$OUT_DIR"

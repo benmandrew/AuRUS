@@ -15,6 +15,10 @@ public class LTLSolver {
     public static AtomicInteger numOfTimeout = new AtomicInteger(0);
     public static AtomicInteger numOfError = new AtomicInteger(0);
     public static AtomicInteger numOfCalls = new AtomicInteger(0);
+    public static AtomicInteger numOfOom = new AtomicInteger(0);
+
+    private static final int MAX_OOM_RETRIES = 2;
+    private static final long OOM_RETRY_BACKOFF_MILLIS = 1000;
 
     private static File createFormulaFile(String formula) throws IOException {
         File tempFile = File.createTempFile("ltl_formula_", ".ltl");
@@ -47,11 +51,15 @@ public class LTLSolver {
         }
 
         boolean hasErrorOutput = false;
+        boolean hasOomOutput = false;
         try (InputStream err = process.getErrorStream();
              BufferedReader errReader = new BufferedReader(new InputStreamReader(err))) {
             String line;
             while ((line = errReader.readLine()) != null) {
                 hasErrorOutput = true;
+                if (isOomErrorLine(line)) {
+                    hasOomOutput = true;
+                }
                 System.out.println("ERR: " + line);
             }
         } catch (IOException e) {
@@ -59,51 +67,77 @@ public class LTLSolver {
             return SolverResult.ERROR;
         }
 
+        int exitCode = process.exitValue();
+        if (hasOomOutput || isOomExitCode(exitCode)) {
+            numOfOom.incrementAndGet();
+            return SolverResult.OOM;
+        }
+
         if (hasErrorOutput) {
             numOfError.incrementAndGet();
             return SolverResult.ERROR;
         }
 
-        int exitCode = process.exitValue();
         return exitCode == 0 ? SolverResult.UNSAT : SolverResult.SAT;
     }
 
     public static SolverResult isSAT(String formula) throws IOException, InterruptedException {
-        numOfCalls.incrementAndGet();
-
         if (formula == null) {
             numOfError.incrementAndGet();
             return SolverResult.ERROR;
         }
 
-        File tempFile = null;
-        Process process = null;
-        try {
-            tempFile = createFormulaFile(formula);
-            process = buildProcessBuilder(tempFile).start();
-            return executeAndCheckResult(process, Settings.SAT_TIMEOUT);
-        } catch (IOException e) {
-            numOfError.incrementAndGet();
-            throw e;
-        } finally {
-            if (process != null) {
-                process.destroy();
-                process.destroyForcibly();
-            }
-            if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
+        int attempt = 0;
+        while (true) {
+            numOfCalls.incrementAndGet();
+            attempt++;
+            File tempFile = null;
+            Process process = null;
+            try {
+                tempFile = createFormulaFile(formula);
+                process = buildProcessBuilder(tempFile).start();
+                SolverResult result = executeAndCheckResult(process, Settings.SAT_TIMEOUT);
+                if (result == SolverResult.OOM && attempt <= MAX_OOM_RETRIES) {
+                    Thread.sleep(OOM_RETRY_BACKOFF_MILLIS * attempt);
+                    continue;
+                }
+                return result;
+            } catch (IOException e) {
+                numOfError.incrementAndGet();
+                throw e;
+            } finally {
+                if (process != null) {
+                    process.destroy();
+                    process.destroyForcibly();
+                }
+                if (tempFile != null && tempFile.exists()) {
+                    tempFile.delete();
+                }
             }
         }
+    }
+
+    private static boolean isOomExitCode(int exitCode) {
+        return exitCode == 137;
+    }
+
+    private static boolean isOomErrorLine(String line) {
+        if (line == null) {
+            return false;
+        }
+        String lower = line.toLowerCase();
+        return lower.contains("out of memory") || lower.contains("oom") || lower.contains("killed");
     }
 
     public enum SolverResult {
         SAT,
         UNSAT,
         TIMEOUT,
-        ERROR;
+        ERROR,
+        OOM;
 
         public boolean inconclusive() {
-            return this == TIMEOUT || this == ERROR;
+            return this == TIMEOUT || this == ERROR || this == OOM;
         }
     }
 }
