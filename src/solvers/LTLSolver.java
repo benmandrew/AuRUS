@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,6 +20,7 @@ public class LTLSolver {
 
     private static final int MAX_OOM_RETRIES = 2;
     private static final long OOM_RETRY_BACKOFF_MILLIS = 1000;
+    private static final ConcurrentHashMap<String, SolverResult> cache = new ConcurrentHashMap<>();
 
     private static File createFormulaFile(String formula) throws IOException {
         File tempFile = File.createTempFile("ltl_formula_", ".ltl");
@@ -87,6 +89,12 @@ public class LTLSolver {
             return SolverResult.ERROR;
         }
 
+        // Check cache first
+        SolverResult cachedResult = cache.get(formula);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
         int attempt = 0;
         while (true) {
             numOfCalls.incrementAndGet();
@@ -100,6 +108,10 @@ public class LTLSolver {
                 if (result == SolverResult.OOM && attempt <= MAX_OOM_RETRIES) {
                     Thread.sleep(OOM_RETRY_BACKOFF_MILLIS * attempt);
                     continue;
+                }
+                // Cache only conclusive results (SAT/UNSAT)
+                if (!result.inconclusive()) {
+                    cache.put(formula, result);
                 }
                 return result;
             } catch (IOException e) {
