@@ -59,23 +59,10 @@ public class GenuineSolutionsMinimal {
             }
         }
         calculateGenuineStatistics(genuineSolutions, solutions);
-        System.out.println("{\"genuine_solutions\":");
-        printJsonList(genuineSolutionsFound, solution_filenames);
-        System.out.println(",\"weaker_solutions\":");
-        printJsonList(moreGeneralSolutions, solution_filenames);
-        System.out.println(",\"stronger_solutions\":");
-        printJsonList(lessGeneralSolutions, solution_filenames);
-        System.out.println("}");
-    }
-
-    private static void printJsonList(Set<Integer> indices, List<String> filenames) {
-        List<Integer> list = new LinkedList<>(indices);
-        System.out.println("[");
-        for (int i = 0; i < list.size(); i++) {
-            System.out.print("\"" + filenames.get(list.get(i)).toString() + "\"");
-            if (i < list.size() - 1) System.out.println(",");
-        }
-        System.out.println("]");
+        System.out.println("{\"n_total_solutions\":" + solutions.size() + ",");
+        System.out.println("\"n_genuine_solutions\":" + genuineSolutionsFound.size() + ",");
+        System.out.println("\"n_weaker_solutions\":" + moreGeneralSolutions.size() + ",");
+        System.out.println("\"n_stronger_solutions\":" + lessGeneralSolutions.size() + "}");
     }
 
     public static void calculateGenuineStatistics(List<Tlsf> genuineSolutions, List<Tlsf> solutions) throws IOException, InterruptedException {
