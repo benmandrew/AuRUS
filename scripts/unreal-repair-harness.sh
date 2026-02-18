@@ -63,10 +63,7 @@ check_spec_files_exist() {
     fi
 }
 
-if ! ant compile; then
-    echo "Build failed" >&2
-    exit 1
-fi
+ant compile > /dev/null
 
 # Fitness factors (as percentage)
 REAL=70
@@ -123,7 +120,7 @@ for case_study_spec in "${CASE_STUDY_SPECS[@]}"; do
         ./scripts/sort-solutions.sh -d="$case_iter_dir" -out="$case_iter_dir/maximal-specs.txt" >> "$log_file" 2>&1
         sort_solutions_seconds=$((SECONDS - start_seconds))
 
-        remove_non_maximal_specs "$case_iter_dir"
+        # remove_non_maximal_specs "$case_iter_dir"
 
         echo "${case_study_spec},${run_index},${unreal_repair_seconds},${sort_solutions_seconds},$SECONDS" >> "$CSV_FILE"
 
