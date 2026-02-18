@@ -1,7 +1,5 @@
 package main;
 
-import geneticalgorithm.AutomataBasedModelCountingSpecificationFitness;
-import geneticalgorithm.SpecificationChromosome;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.tlsf.Tlsf;
@@ -10,9 +8,7 @@ import solvers.LTLSolver;
 import utils.SolverUtils;
 import utils.TlsfUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,25 +34,17 @@ public class GenuineSolutionsMinimal {
     public static Set<Integer> moreGeneralThanOriginalSolutions = new HashSet<>();
     // Logically stronger than the original solution
     public static Set<Integer> lessGeneralThanOriginalSolutions = new HashSet<>();
-    public static boolean computeFitness = true;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         List<Tlsf> genuineSolutions = new LinkedList<>();
         List<Tlsf> solutions = new LinkedList<>();
-        List<Double> sol_fitness = new LinkedList<>();
         String directoryName;
         List<String> solution_filenames = new LinkedList<>();
-        Tlsf original = null;
         for (String arg : args) {
             if (arg.startsWith("-ref=")) {
                 String ref_name = arg.replace("-ref=", "");
                 Tlsf ref_sol = TlsfUtils.toBasicTLSF(new File(ref_name));
                 genuineSolutions.add(ref_sol);
-            } else if (arg.startsWith("-o=")) {
-                String orig_name = arg.replace("-o=", "");
-                original = TlsfUtils.toBasicTLSF(new File(orig_name));
-            } else if (arg.startsWith("-noFit")) {
-                computeFitness = false;
             } else {
                 directoryName = arg;
                 Stream<Path> walk = Files.walk(Paths.get(directoryName));
@@ -66,46 +54,18 @@ public class GenuineSolutionsMinimal {
                     // System.out.println(filename);
                     Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
                     solutions.add(tlsf);
-                    //read the fitness from file
-                    if (!computeFitness) {
-                        FileReader f = new FileReader(filename);
-                        BufferedReader in = new BufferedReader(f);
-                        String aux;
-                        double value = 0.0d;
-                        while ((aux = in.readLine()) != null) {
-                            if ((aux.startsWith("//fitness"))) {
-                                value = Double.parseDouble(aux.substring(10));
-                            }
-                        }
-                        sol_fitness.add(value);
-                        in.close();
-                    }
                 }
                 walk.close();
             }
         }
         calculateGenuineStatistics(genuineSolutions, solutions);
-
-        if (original != null) {
-            if (computeFitness) {
-                AutomataBasedModelCountingSpecificationFitness fitness = new AutomataBasedModelCountingSpecificationFitness(original);
-                for (Tlsf sol : solutions) {
-                    SpecificationChromosome c = new SpecificationChromosome(sol);
-                    Double f = fitness.calculate(c);
-                    sol_fitness.add(f);
-                }
-            }
-            if (!genuineSolutions.isEmpty()) {
-                System.out.println("{\"genuine_solutions\":");
-                printJsonList(genuineSolutionsFound, solution_filenames);
-                System.out.println(",\"weaker_solutions\":");
-                printJsonList(moreGeneralSolutions, solution_filenames);
-                System.out.println(",\"stronger_solutions\":");
-                printJsonList(lessGeneralSolutions, solution_filenames);
-                System.out.println("}");
-            }
-        }
-        System.exit(0);
+        System.out.println("{\"genuine_solutions\":");
+        printJsonList(genuineSolutionsFound, solution_filenames);
+        System.out.println(",\"weaker_solutions\":");
+        printJsonList(moreGeneralSolutions, solution_filenames);
+        System.out.println(",\"stronger_solutions\":");
+        printJsonList(lessGeneralSolutions, solution_filenames);
+        System.out.println("}");
     }
 
     private static void printJsonList(Set<Integer> indices, List<String> filenames) {
