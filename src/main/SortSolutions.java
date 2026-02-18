@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 import owl.ltl.tlsf.Tlsf;
 import utils.TlsfUtils;
-import utils.TopologicalSort;
+import utils.MaximalSolutions;
 
 /* Sort solutions based on the partial order of implication
    Uses a topological sort algorithm to sort the specifications
@@ -62,8 +62,7 @@ public class SortSolutions {
         System.out.println("Found " + specifications_filenames.size() + " specifications, converting to TLSF...");
         List<Tlsf> specifications = parseTlsfFiles(specifications_filenames);
         System.out.println("Starting topological sort based on implication...");
-        TopologicalSort topoSort = new TopologicalSort(specifications.size());
-        List<Integer> maximalElements = topoSort.getMaximalElements(specifications);
+        List<Integer> maximalElements = MaximalSolutions.getMaximalElements(specifications);
         List<String> maximalSpecs = new ArrayList<>(maximalElements.size());
         for (int i = 0; i < maximalElements.size(); i++) {
             String path = Paths.get(specifications_filenames.get(maximalElements.get(i))).toAbsolutePath().toString();
@@ -75,6 +74,6 @@ public class SortSolutions {
         }
         Files.write(outputPath, maximalSpecs);
         System.out.println("Wrote " + maximalSpecs.size() + " maximal specifications to " + outputPath.toAbsolutePath());
-        System.out.println("Elapsed: " + topoSort.getElapsedDuration());
+        System.out.println("Elapsed: " + MaximalSolutions.getElapsedDuration());
     }
 }
