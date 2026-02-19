@@ -17,8 +17,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GenuineSolutionsMinimal {
 
@@ -39,7 +37,6 @@ public class GenuineSolutionsMinimal {
         List<Tlsf> genuineSolutions = new LinkedList<>();
         List<Tlsf> solutions = new LinkedList<>();
         String directoryName;
-        List<String> solution_filenames = new LinkedList<>();
         for (String arg : args) {
             if (arg.startsWith("-ref=")) {
                 String ref_name = arg.replace("-ref=", "");
@@ -47,15 +44,7 @@ public class GenuineSolutionsMinimal {
                 genuineSolutions.add(ref_sol);
             } else {
                 directoryName = arg;
-                Stream<Path> walk = Files.walk(Paths.get(directoryName));
-                solution_filenames = walk.map(Path::toString)
-                        .filter(f -> f.endsWith(".tlsf") && !f.endsWith("_basic.tlsf")).collect(Collectors.toList());
-                for (String filename : solution_filenames) {
-                    // System.out.println(filename);
-                    Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
-                    solutions.add(tlsf);
-                }
-                walk.close();
+                solutions.addAll(loadSolutionsFromMaximalSpecs(directoryName));
             }
         }
         calculateGenuineStatistics(genuineSolutions, solutions);
@@ -63,6 +52,27 @@ public class GenuineSolutionsMinimal {
         System.out.println("\"n_genuine_solutions\":" + genuineSolutionsFound.size() + ",");
         System.out.println("\"n_weaker_solutions\":" + moreGeneralSolutions.size() + ",");
         System.out.println("\"n_stronger_solutions\":" + lessGeneralSolutions.size() + "}");
+    }
+
+    private static List<Tlsf> loadSolutionsFromMaximalSpecs(String directoryName) throws IOException, InterruptedException {
+        String maximalSpecsPath = directoryName + "/maximal-specs.txt";
+        Path path = Paths.get(maximalSpecsPath);
+        if (!Files.exists(path)) {
+            throw new IOException("maximal-specs.txt not found at: " + maximalSpecsPath);
+        }
+        List<String> lines = Files.readAllLines(path);
+        List<String> solution_filenames = new LinkedList<>();
+        for (String line : lines) {
+            String filename = line.substring(line.lastIndexOf('/') + 1);
+            String relativePath = directoryName + "/" + filename;
+            solution_filenames.add(relativePath);
+        }
+        List<Tlsf> solutions = new LinkedList<>();
+        for (String filename : solution_filenames) {
+            Tlsf tlsf = TlsfUtils.toBasicTLSF(new File(filename));
+            solutions.add(tlsf);
+        }
+        return solutions;
     }
 
     public static void calculateGenuineStatistics(List<Tlsf> genuineSolutions, List<Tlsf> solutions) throws IOException, InterruptedException {
