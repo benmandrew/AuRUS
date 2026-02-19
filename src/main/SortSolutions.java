@@ -13,12 +13,27 @@ import owl.ltl.tlsf.Tlsf;
 import utils.TlsfUtils;
 import utils.MaximalSolutions;
 
-/* Sort solutions based on the partial order of implication
-   Uses a topological sort algorithm to sort the specifications
-   such that if spec A implies spec B, then A appears before B in the sorted list
-*/
-
 public class SortSolutions {
+    private static List<String> filterDuplicateSpecs(List<String> specifications_filenames) {
+        Set<String> uniqueSpecs = new HashSet<>();
+        List<String> filteredFilenames = new LinkedList<>();
+        int n_duplicates = 0;
+        for (String filename : specifications_filenames) {
+            try {
+                String specString = Files.readString(Paths.get(filename));
+                if (!uniqueSpecs.contains(specString)) {
+                    uniqueSpecs.add(specString);
+                    filteredFilenames.add(filename);
+                } else {
+                    n_duplicates++;
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + filename);
+            }
+        }
+        System.out.println("Removed " + n_duplicates + "/" + specifications_filenames.size() + " duplicate specifications.");
+        return filteredFilenames;
+    }
 
     private static List<Tlsf> parseTlsfFiles(List<String> specifications_filenames) throws IOException, InterruptedException {
         List<Tlsf> specifications = new LinkedList<>();
@@ -59,9 +74,10 @@ public class SortSolutions {
             specifications_filenames = specifications_filenames.subList(0, limit);
             System.out.println("Limited to first " + limit + " specifications");
         }
-        System.out.println("Found " + specifications_filenames.size() + " specifications, converting to TLSF...");
+        specifications_filenames = filterDuplicateSpecs(specifications_filenames);
+        System.out.println("Parsing " + specifications_filenames.size() + " TLSF specifications...");
         List<Tlsf> specifications = parseTlsfFiles(specifications_filenames);
-        System.out.println("Starting topological sort based on implication...");
+        System.out.println("Finding the maximal solutions...");
         List<Integer> maximalElements = MaximalSolutions.getMaximalElements(specifications);
         List<String> maximalSpecs = new ArrayList<>(maximalElements.size());
         for (int i = 0; i < maximalElements.size(); i++) {

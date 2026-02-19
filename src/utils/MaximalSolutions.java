@@ -120,7 +120,7 @@ public class MaximalSolutions {
                 long remaining = estimatedTotal - elapsed;
                 timeEstimate = String.format(", ETA: %s", formatDuration(remaining));
             }
-            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \n");
+            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \r");
             if (done == total) {
                 System.out.println();
             }
