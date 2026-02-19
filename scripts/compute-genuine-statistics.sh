@@ -10,13 +10,14 @@ run_case_study() {
 
     local references=()
     for f in "$references_dir"/*.tlsf; do
-        references+=("-ref=$f")
+        references+=("--ref=$f")
     done
 
     local output
     output=$(java -Xmx8g -Djava.library.path=/usr/local/lib \
         -cp "bin:lib/commons-math3-3.6.1.jar:lib/rltlconv.jar:lib/JFLAP-7.0_With_Source.jar:lib/owl-18.10-snapshot.jar:lib/ejml/ejml-core-0.34.jar:lib/ejml/ejml-cdense-0.34.jar:lib/ejml/ejml-ddense-0.34.jar:lib/ejml/ejml-fdense-0.34.jar:lib/ejml/ejml-simple-0.34.jar:lib/ejml/ejml-zdense-0.34.jar:lib/ejml/ejml-dsparse-0.34.jar:lib/ejml/ejml-experimental-0.34.jar:lib/ltl2buchi.jar" \
         main.GenuineSolutionsMinimal \
+        --n-solutions \
         "${references[@]}" "$solutions_dir")
 
     echo "$output" | jq -r '[.n_total_solutions,.n_genuine_solutions,.n_weaker_solutions,.n_stronger_solutions] | @csv'
@@ -34,30 +35,7 @@ if [ ! -d "$GENUINE_SOLUTIONS_DIR" ]; then
     exit 1
 fi
 
-OUTPUT_CSV="analysis-results/genuine/arbiter.csv"
-if [ -f "$OUTPUT_CSV" ]; then
-    echo "Output CSV $OUTPUT_CSV already exists. Please remove it before running the script."
-    exit 1
-fi
-
-tmpdir=$(mktemp -d)
-trap 'rm -rf "$tmpdir"' EXIT
-
-N_JOBS=${N_JOBS:-4}
-i=0
-
-echo "n_total_solutions,n_genuine_solutions,n_weaker_solutions,n_stronger_solutions" > "$OUTPUT_CSV"
-
 for result in "$RESULTS_DIR"/*/; do
-    while [ "$(jobs -pr | wc -l)" -ge "$N_JOBS" ]; do
-        wait -n
-    done
-    i=$((i+1))
-    run_case_study "$GENUINE_SOLUTIONS_DIR" "${result%/}" > "$tmpdir/$i.csv" &
-done
-
-wait
-
-for f in "$tmpdir"/*.csv; do
-    cat "$f" >> "$OUTPUT_CSV"
+    echo "Processing result: $result"
+    run_case_study "$GENUINE_SOLUTIONS_DIR" "${result%/}"
 done
