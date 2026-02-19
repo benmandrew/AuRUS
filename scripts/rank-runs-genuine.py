@@ -5,6 +5,7 @@ import argparse
 import subprocess
 import json
 import math
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def getSortedSpecs(specs: list[Path], spec_dir: Path) -> list[tuple[float, str, str]]:
@@ -59,7 +60,7 @@ def getGenuineStatistics(solutions_dir: Path, genuine_dir: Path) -> dict[str, se
     }
 
 
-def compute_ndcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]]) -> float:
+def computeNdcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]]) -> float:
     """
     Compute Normalized Discounted Cumulative Gain for the ranking.
     Relevance scores: genuine=1.0, weaker=1.0, stronger=1.0
@@ -100,22 +101,7 @@ def compute_ndcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str
     return dcg / idcg
 
 
-def process_run_directory(run_dir: Path, genuine_dir: Path) -> tuple[str, float] | None:
-    """Process a single run directory and return (name, ndcg) or None if directory is invalid."""
-    if not run_dir.is_dir():
-        return None
-    specs_file = run_dir / "maximal-specs.txt"
-    if not specs_file.exists():
-        return None
-    with specs_file.open() as f:
-        specs = [Path(line.strip()) for line in f if line.strip()]
-    # Get genuine statistics
-    stats = getGenuineStatistics(run_dir, genuine_dir)
-    if not stats["genuine"] and not stats["weaker"] and not stats["stronger"]:
-        print(f"Warning: No genuine/weaker/stronger solutions found for {run_dir.name}")
-        return None
-    # Get sorted specs
-    scores = getSortedSpecs(specs, run_dir)
+def printRanking(run_dir: Path, scores: list[tuple[float, str, str]], stats: dict[str, set[str]]):
     seen: set[str] = set()
     rank = 1
     print(f"\n{run_dir.name}:")
@@ -134,9 +120,28 @@ def process_run_directory(run_dir: Path, genuine_dir: Path) -> tuple[str, float]
             annotation = colored(" [stronger]", "red")
         print(f"{rank:>2}: {file_name:>11}{annotation}")
         rank += 1
+
+
+def processRunDirectory(run_dir: Path, genuine_dir: Path) -> tuple[str, float] | None:
+    """Process a single run directory and return (name, ndcg) or None if directory is invalid."""
+    if not run_dir.is_dir():
+        return None
+    specs_file = run_dir / "maximal-specs.txt"
+    if not specs_file.exists():
+        return None
+    with specs_file.open() as f:
+        specs = [Path(line.strip()) for line in f if line.strip()]
+    # Get genuine statistics
+    stats = getGenuineStatistics(run_dir, genuine_dir)
+    if not stats["genuine"] and not stats["weaker"] and not stats["stronger"]:
+        print(f"Warning: No genuine/weaker/stronger solutions found for {run_dir.name}")
+        return None
+    # Get sorted specs
+    scores = getSortedSpecs(specs, run_dir)
+    printRanking(run_dir, scores, stats)
     # Compute NDCG
-    ndcg = compute_ndcg(scores, stats)
-    print(f"\nNDCG: {ndcg:.4f}")
+    ndcg = computeNdcg(scores, stats)
+    # print(f"\nNDCG: {ndcg:.4f}")
     return (run_dir.name, ndcg)
 
 
@@ -144,18 +149,23 @@ def main():
     ap = argparse.ArgumentParser(description="Rank runs and compute NDCG")
     ap.add_argument("results_dir", help="Directory containing run subdirectories with maximal-specs.txt")
     ap.add_argument("--genuine-dir", help="Directory containing genuine solutions", required=True)
+    ap.add_argument("--workers", type=int, default=4, help="Number of parallel workers")
     args = ap.parse_args()
     results_dir = Path(args.results_dir)
     genuine_dir = Path(args.genuine_dir)
     if not results_dir.is_dir():
         print(f"Error: {results_dir} is not a directory")
         return
-    # Process each subdirectory
+    # Collect all run directories
+    run_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir()])
+    # Process each subdirectory in parallel
     ndcg_scores = []
-    for run_dir in sorted(results_dir.iterdir()):
-        result = process_run_directory(run_dir, genuine_dir)
-        if result is not None:
-            ndcg_scores.append(result)
+    with ProcessPoolExecutor(max_workers=args.workers) as executor:
+        futures = {executor.submit(processRunDirectory, run_dir, genuine_dir): run_dir for run_dir in run_dirs}
+        for future in as_completed(futures):
+            result = future.result()
+            if result is not None:
+                ndcg_scores.append(result)
     # Summary
     if ndcg_scores:
         print("\n" + "=" * 60)
