@@ -22,19 +22,19 @@ run_case_study() {
     echo "$output" | jq -r '[.n_total_solutions,.n_genuine_solutions,.n_weaker_solutions,.n_stronger_solutions] | @csv'
 }
 
-RESULTS_DIR="result/GyroUnrealizable_Var1_710_GyroAspect_unrealizable"
+RESULTS_DIR="result-av3/arbiter"
 if [ ! -d "$RESULTS_DIR" ]; then
     echo "Results directory $RESULTS_DIR does not exist."
     exit 1
 fi
 
-GENUINE_SOLUTIONS_DIR="case-studies/GyroUnrealizable_Var1/genuine"
+GENUINE_SOLUTIONS_DIR="case-studies/arbiter/genuine"
 if [ ! -d "$GENUINE_SOLUTIONS_DIR" ]; then
     echo "Genuine solutions directory $GENUINE_SOLUTIONS_DIR does not exist."
     exit 1
 fi
 
-OUTPUT_CSV="analysis-results/genuine/GyroUnrealizable_Var1.csv"
+OUTPUT_CSV="analysis-results/genuine/arbiter.csv"
 if [ -f "$OUTPUT_CSV" ]; then
     echo "Output CSV $OUTPUT_CSV already exists. Please remove it before running the script."
     exit 1
@@ -48,12 +48,12 @@ i=0
 
 echo "n_total_solutions,n_genuine_solutions,n_weaker_solutions,n_stronger_solutions" > "$OUTPUT_CSV"
 
-for result in "$RESULTS_DIR"/*; do
+for result in "$RESULTS_DIR"/*/; do
     while [ "$(jobs -pr | wc -l)" -ge "$N_JOBS" ]; do
         wait -n
     done
     i=$((i+1))
-    run_case_study "$GENUINE_SOLUTIONS_DIR" "$result" > "$tmpdir/$i.csv" &
+    run_case_study "$GENUINE_SOLUTIONS_DIR" "${result%/}" > "$tmpdir/$i.csv" &
 done
 
 wait
