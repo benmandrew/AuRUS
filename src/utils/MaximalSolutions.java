@@ -107,26 +107,6 @@ public class MaximalSolutions {
         return formatDuration(elapsed);
     }
 
-    private static void printMaxElementsProgress(int from, int to, int performed, int skipped, int total) {
-        int done = performed + skipped;
-        if (done % 100 != 0 && done != total) {
-            return;
-        }
-        synchronized (System.out) {
-            long elapsed = System.currentTimeMillis() - startTimeMillis;
-            String timeEstimate = "";
-            if (done > 0) {
-                long estimatedTotal = (elapsed * total) / done;
-                long remaining = estimatedTotal - elapsed;
-                timeEstimate = String.format(", ETA: %s", formatDuration(remaining));
-            }
-            System.out.print("[performed: " + performed + ", skipped: " + skipped + ", done: " + done + "/" + total + timeEstimate + "] \r");
-            if (done == total) {
-                System.out.println();
-            }
-        }
-    }
-
     public static List<Integer> getMaximalElements(List<Tlsf> specs) throws IOException, InterruptedException {
         List<String> formulae = getFormulae(specs);
         int totalComparisons = specs.size() * (specs.size() - 1);
@@ -140,14 +120,12 @@ public class MaximalSolutions {
         runParallelComparisons(specs.size(), formulae, totalComparisons, skippedComparisons, performedComparisons, (from, to) -> {
             if (subsumed[from].get() || subsumed[to].get()) {
                 skippedComparisons.incrementAndGet();
-                printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
                 return;
             }
             if (implies(formulae.get(from), formulae.get(to))) {
                 subsumed[to].set(true);
             }
             performedComparisons.incrementAndGet();
-            printMaxElementsProgress(from, to, performedComparisons.get(), skippedComparisons.get(), totalComparisons);
         });
         int performed = performedComparisons.get();
         int skipped = skippedComparisons.get();
