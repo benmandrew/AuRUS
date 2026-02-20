@@ -6,6 +6,12 @@ import subprocess
 import json
 import math
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import random
+import statistics
+
+
+# Global configuration for Monte Carlo permutations
+NUM_PERMUTATIONS = 10000
 
 
 def getSortedSpecs(specs: list[Path], spec_dir: Path) -> list[tuple[float, str, str]]:
@@ -78,9 +84,9 @@ def computeNdcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]
     dcg = 0.0
     seen = set()
     for _, filename, tlsf in ranking:
-        if tlsf in seen:
+        if filename in seen:
             continue
-        seen.add(tlsf)
+        seen.add(filename)
         relevance = get_relevance(filename)
         position = len(seen)  # 1-indexed
         discount = math.log2(position + 1)
@@ -101,15 +107,56 @@ def computeNdcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]
     return dcg / idcg
 
 
+def compute_monte_carlo_pvalue(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]], num_permutations: int = None) -> tuple[float, float, float]:
+    """
+    Compute p-value and effect size using Monte Carlo permutation test.
+    Returns: (p_value, effect_size, mean_random_ndcg)
+    """
+    if num_permutations is None:
+        num_permutations = NUM_PERMUTATIONS
+    # Compute actual NDCG
+    actual_ndcg = computeNdcg(ranking, stats)
+    # Extract just the filenames in order (preserving order)
+    filenames = []
+    seen = set()
+    for _, filename, tlsf in ranking:
+        if filename in seen:
+            continue
+        seen.add(filename)
+        filenames.append(filename)
+    # Generate random permutations and compute their NDCG
+    random_ndcgs = []
+    for _ in range(num_permutations):
+        shuffled = filenames.copy()
+        random.shuffle(shuffled)
+        # Convert back to ranking format with dummy scores
+        shuffled_ranking = [(0.0, filename, "") for filename in shuffled]
+        random_ndcg = computeNdcg(shuffled_ranking, stats)
+        random_ndcgs.append(random_ndcg)
+    # Compute p-value (proportion of random permutations >= actual)
+    p_value = sum(1 for ndcg in random_ndcgs if ndcg >= actual_ndcg) / num_permutations
+    # Compute effect size (z-score)
+    mean_random = statistics.mean(random_ndcgs)
+    if len(random_ndcgs) > 1:
+        std_random = statistics.stdev(random_ndcgs)
+        if std_random > 0:
+            effect_size = (actual_ndcg - mean_random) / std_random
+        else:
+            effect_size = 0.0
+    else:
+        effect_size = 0.0
+    return (p_value, effect_size, mean_random)
+
+
 def printRanking(run_dir: Path, scores: list[tuple[float, str, str]], stats: dict[str, set[str]]):
     seen: set[str] = set()
     rank = 1
     print(f"\n{run_dir.name}:")
     print("-" * 60)
     for _syntactic_score, file_name, tlsf in scores:
-        if tlsf in seen:
+        if file_name in seen:
             continue
-        seen.add(tlsf)
+        seen.add(file_name)
         # Determine classification
         annotation = ""
         if file_name in stats["genuine"]:
@@ -122,8 +169,8 @@ def printRanking(run_dir: Path, scores: list[tuple[float, str, str]], stats: dic
         rank += 1
 
 
-def processRunDirectory(run_dir: Path, genuine_dir: Path) -> tuple[str, float] | None:
-    """Process a single run directory and return (name, ndcg) or None if directory is invalid."""
+def processRunDirectory(run_dir: Path, genuine_dir: Path) -> tuple[str, float, float, float] | None:
+    """Process a single run directory and return (name, ndcg, p_value, effect_size) or None if directory is invalid."""
     if not run_dir.is_dir():
         return None
     specs_file = run_dir / "maximal-specs.txt"
@@ -138,19 +185,66 @@ def processRunDirectory(run_dir: Path, genuine_dir: Path) -> tuple[str, float] |
         return None
     # Get sorted specs
     scores = getSortedSpecs(specs, run_dir)
-    printRanking(run_dir, scores, stats)
+    # printRanking(run_dir, scores, stats)
     # Compute NDCG
     ndcg = computeNdcg(scores, stats)
-    # print(f"\nNDCG: {ndcg:.4f}")
-    return (run_dir.name, ndcg)
+    # Compute p-value and effect size
+    p_value, effect_size, mean_random = compute_monte_carlo_pvalue(scores, stats)
+    print(f"NDCG: {ndcg:.4f} (p-value: {p_value:.4f}, effect size: {effect_size:.2f})")
+    return (run_dir.name, ndcg, p_value, effect_size)
+
+
+def processAggregateAll(run_dirs: list[Path], genuine_dir: Path) -> tuple[float, float, float] | None:
+    """Process all runs aggregated together and return (ndcg, p_value, effect_size)."""
+    all_specs = []
+    all_stats = {"genuine": set(), "weaker": set(), "stronger": set()}
+    all_scores = []
+    # Collect all specs and stats from all runs
+    for run_dir in run_dirs:
+        specs_file = run_dir / "maximal-specs.txt"
+        if not specs_file.exists():
+            continue
+        with specs_file.open() as f:
+            specs = [Path(line.strip()) for line in f if line.strip()]
+        # Get genuine statistics for this run
+        stats = getGenuineStatistics(run_dir, genuine_dir)
+        all_stats["genuine"].update(stats["genuine"])
+        all_stats["weaker"].update(stats["weaker"])
+        all_stats["stronger"].update(stats["stronger"])
+        # Get sorted specs for this run
+        scores = getSortedSpecs(specs, run_dir)
+        all_scores.extend(scores)
+        all_specs.extend(specs)
+    if not all_specs:
+        print("Warning: No specs found in any run")
+        return None
+    print(f"\nAggregated Results (from {len(run_dirs)} runs):")
+    print("-" * 60)
+    print(f"Total specs: {len(all_specs)}")
+    print(f"Genuine solutions: {len(all_stats['genuine'])}")
+    print(f"Weaker solutions: {len(all_stats['weaker'])}")
+    print(f"Stronger solutions: {len(all_stats['stronger'])}")
+    print()
+    # Compute NDCG on aggregated data
+    ndcg = computeNdcg(all_scores, all_stats)
+    p_value, effect_size, mean_random = compute_monte_carlo_pvalue(all_scores, all_stats)
+    print(f"Aggregated NDCG: {ndcg:.4f}")
+    print(f"p-value: {p_value:.4f}")
+    print(f"Effect size: {effect_size:.2f}")
+    print(f"Mean random NDCG: {mean_random:.4f}")
+    return (ndcg, p_value, effect_size)
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Rank runs and compute NDCG")
+    global NUM_PERMUTATIONS
+    ap = argparse.ArgumentParser(description="Rank runs and compute NDCG with Monte Carlo p-values")
     ap.add_argument("results_dir", help="Directory containing run subdirectories with maximal-specs.txt")
     ap.add_argument("--genuine-dir", help="Directory containing genuine solutions", required=True)
     ap.add_argument("--workers", type=int, default=4, help="Number of parallel workers")
+    ap.add_argument("--permutations", type=int, default=NUM_PERMUTATIONS, help="Number of random permutations for Monte Carlo test")
+    ap.add_argument("--aggregate-all", action="store_true", help="Aggregate all specs from all runs for single NDCG computation")
     args = ap.parse_args()
+    NUM_PERMUTATIONS = args.permutations
     results_dir = Path(args.results_dir)
     genuine_dir = Path(args.genuine_dir)
     if not results_dir.is_dir():
@@ -158,6 +252,21 @@ def main():
         return
     # Collect all run directories
     run_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir()])
+    # If aggregate-all mode, process all runs together
+    if args.aggregate_all:
+        result = processAggregateAll(run_dirs, genuine_dir)
+        if result:
+            ndcg, p_value, effect_size = result
+            print("\n" + "=" * 60)
+            significance = ""
+            if p_value < 0.001:
+                significance = " ***"
+            elif p_value < 0.01:
+                significance = " **"
+            elif p_value < 0.05:
+                significance = " *"
+            print(f"[Aggregated] NDCG={ndcg:.4f}, p-value={p_value:.4f}, effect_size={effect_size:.2f}{significance}")
+        return
     # Process each subdirectory in parallel
     ndcg_scores = []
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
@@ -171,8 +280,17 @@ def main():
         print("\n" + "=" * 60)
         print("NDCG Summary:")
         print("=" * 60)
-        for name, ndcg in sorted(ndcg_scores, key=lambda x: -x[1]):
-            print(f"{name:>20}: {ndcg:.4f}")
+        print(f"{'Run':<5} {'NDCG':<7} {'p-value':<7} {'Effect Size':<8}")
+        print("-" * 60)
+        for name, ndcg, p_value, effect_size in sorted(ndcg_scores, key=lambda x: -x[1]):
+            significance = ""
+            if p_value < 0.001:
+                significance = " ***"
+            elif p_value < 0.01:
+                significance = " **"
+            elif p_value < 0.05:
+                significance = " *"
+            print(f"{name:>5} {ndcg:>7.4f} {p_value:>7.4f} {effect_size:>8.2f}{significance}")
 
 
 if __name__ == "__main__":
