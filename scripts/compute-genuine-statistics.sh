@@ -20,22 +20,25 @@ run_case_study() {
         --n-solutions \
         "${references[@]}" "$solutions_dir")
 
-    echo "$output" | jq -r '[.n_total_solutions,.n_genuine_solutions,.n_weaker_solutions,.n_stronger_solutions] | @csv'
+    echo "$output" | jq -r '[.run,.n_total_solutions,.n_genuine_solutions,.n_weaker_solutions,.n_stronger_solutions] | @csv'
 }
 
-RESULTS_DIR="result-av3/arbiter"
+RESULTS_DIR="result/gyro_var2"
 if [ ! -d "$RESULTS_DIR" ]; then
     echo "Results directory $RESULTS_DIR does not exist."
     exit 1
 fi
 
-GENUINE_SOLUTIONS_DIR="case-studies/arbiter/genuine"
+GENUINE_SOLUTIONS_DIR="case-studies/GyroUnrealizable_Var2/genuine"
 if [ ! -d "$GENUINE_SOLUTIONS_DIR" ]; then
     echo "Genuine solutions directory $GENUINE_SOLUTIONS_DIR does not exist."
     exit 1
 fi
 
+CSV_OUTPUT="analysis-results/genuine/GyroUnrealizable_Var2.csv"
+echo "run,n_total_solutions,n_genuine_solutions,n_weaker_solutions,n_stronger_solutions" > "$CSV_OUTPUT"
+
 for result in "$RESULTS_DIR"/*/; do
     echo "Processing result: $result"
-    run_case_study "$GENUINE_SOLUTIONS_DIR" "${result%/}"
+    run_case_study "$GENUINE_SOLUTIONS_DIR" "${result%/}" >> "$CSV_OUTPUT"
 done

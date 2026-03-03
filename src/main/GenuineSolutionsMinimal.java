@@ -35,7 +35,7 @@ public class GenuineSolutionsMinimal {
         List<String> solution_filenames = new LinkedList<>();
         List<Tlsf> solutions = new LinkedList<>();
         boolean nSolutionsSpecified = false;
-        String directoryName;
+        String directoryName = "";
         for (String arg : args) {
             if (arg.startsWith("--ref=")) {
                 String ref_name = arg.replace("--ref=", "");
@@ -51,7 +51,9 @@ public class GenuineSolutionsMinimal {
         }
         calculateGenuineStatistics(genuineSolutions, solutions);
         if (nSolutionsSpecified) {
-            System.out.println("{\"n_total_solutions\":" + solutions.size() + ",");
+            String finalDirectoryName = Paths.get(directoryName).getFileName().toString();
+            System.out.println("{\"run\":" + finalDirectoryName + ",");
+            System.out.println("\"n_total_solutions\":" + solutions.size() + ",");
             System.out.println("\"n_genuine_solutions\":" + genuineSolutionsFound.size() + ",");
             System.out.println("\"n_weaker_solutions\":" + moreGeneralSolutions.size() + ",");
             System.out.println("\"n_stronger_solutions\":" + lessGeneralSolutions.size() + "}");

@@ -216,81 +216,62 @@ def processAggregateAll(run_dirs: list[Path], genuine_dir: Path) -> tuple[float,
         all_scores.extend(scores)
         all_specs.extend(specs)
     if not all_specs:
-        print("Warning: No specs found in any run")
+        # print("Warning: No specs found in any run")
         return None
-    print(f"\nAggregated Results (from {len(run_dirs)} runs):")
-    print("-" * 60)
-    print(f"Total specs: {len(all_specs)}")
-    print(f"Genuine solutions: {len(all_stats['genuine'])}")
-    print(f"Weaker solutions: {len(all_stats['weaker'])}")
-    print(f"Stronger solutions: {len(all_stats['stronger'])}")
-    print()
     # Compute NDCG on aggregated data
     ndcg = computeNdcg(all_scores, all_stats)
     p_value, effect_size, mean_random = compute_monte_carlo_pvalue(all_scores, all_stats)
-    print(f"Aggregated NDCG: {ndcg:.4f}")
-    print(f"p-value: {p_value:.4f}")
-    print(f"Effect size: {effect_size:.2f}")
-    print(f"Mean random NDCG: {mean_random:.4f}")
     return (ndcg, p_value, effect_size)
 
 
 def main():
     global NUM_PERMUTATIONS
     ap = argparse.ArgumentParser(description="Rank runs and compute NDCG with Monte Carlo p-values")
-    ap.add_argument("results_dir", help="Directory containing run subdirectories with maximal-specs.txt")
-    ap.add_argument("--genuine-dir", help="Directory containing genuine solutions", required=True)
+    # ap.add_argument("results_dir", help="Directory containing run subdirectories with maximal-specs.txt")
+    # ap.add_argument("--genuine-dir", help="Directory containing genuine solutions", required=True)
     ap.add_argument("--workers", type=int, default=4, help="Number of parallel workers")
     ap.add_argument("--permutations", type=int, default=NUM_PERMUTATIONS, help="Number of random permutations for Monte Carlo test")
     ap.add_argument("--aggregate-all", action="store_true", help="Aggregate all specs from all runs for single NDCG computation")
     args = ap.parse_args()
     NUM_PERMUTATIONS = args.permutations
-    results_dir = Path(args.results_dir)
-    genuine_dir = Path(args.genuine_dir)
-    if not results_dir.is_dir():
-        print(f"Error: {results_dir} is not a directory")
-        return
-    # Collect all run directories
-    run_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir()])
-    # If aggregate-all mode, process all runs together
-    if args.aggregate_all:
+    results_dirs = [
+        # Path("result/lily02"),
+        # Path("result/minepump"),
+        # Path("result/Lift"),
+        # Path("result/arbiter"),
+        # Path("result/RG1"),
+        # Path("result/RG2"),
+        # Path("result/gyro_var1"),
+        # Path("result/gyro_var2"),
+        Path("result/HumanoidLTL_531_Humanoid_unrealizable"),
+    ]
+    for d in results_dirs:
+        if not d.is_dir():
+            print(f"Error: Results directory {d} does not exist or is not a directory")
+            return
+    genuine_dirs = [
+        # Path("case-studies/lily02/genuine"),
+        # Path("case-studies/minepump/genuine"),
+        # Path("case-studies/lift/genuine"),
+        # Path("case-studies/arbiter/genuine"),
+        # Path("case-studies/RG1/genuine"),
+        # Path("case-studies/RG2/genuine"),
+        # Path("case-studies/GyroUnrealizable_Var1/genuine"),
+        # Path("case-studies/GyroUnrealizable_Var2/genuine"),
+        Path("case-studies/HumanoidLTL_531/genuine")
+    ]
+    for d in genuine_dirs:
+        if not d.is_dir():
+            print(f"Error: Genuine directory {d} does not exist or is not a directory")
+            return
+    # print("case-study,ndcg,p-value,effect-size", flush=True)
+    for results_dir, genuine_dir in zip(results_dirs, genuine_dirs):
+        # Collect all run directories
+        run_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir()])
         result = processAggregateAll(run_dirs, genuine_dir)
         if result:
             ndcg, p_value, effect_size = result
-            print("\n" + "=" * 60)
-            significance = ""
-            if p_value < 0.001:
-                significance = " ***"
-            elif p_value < 0.01:
-                significance = " **"
-            elif p_value < 0.05:
-                significance = " *"
-            print(f"[Aggregated] NDCG={ndcg:.4f}, p-value={p_value:.4f}, effect_size={effect_size:.2f}{significance}")
-        return
-    # Process each subdirectory in parallel
-    ndcg_scores = []
-    with ProcessPoolExecutor(max_workers=args.workers) as executor:
-        futures = {executor.submit(processRunDirectory, run_dir, genuine_dir): run_dir for run_dir in run_dirs}
-        for future in as_completed(futures):
-            result = future.result()
-            if result is not None:
-                ndcg_scores.append(result)
-    # Summary
-    if ndcg_scores:
-        print("\n" + "=" * 60)
-        print("NDCG Summary:")
-        print("=" * 60)
-        print(f"{'Run':<5} {'NDCG':<7} {'p-value':<7} {'Effect Size':<8}")
-        print("-" * 60)
-        for name, ndcg, p_value, effect_size in sorted(ndcg_scores, key=lambda x: -x[1]):
-            significance = ""
-            if p_value < 0.001:
-                significance = " ***"
-            elif p_value < 0.01:
-                significance = " **"
-            elif p_value < 0.05:
-                significance = " *"
-            print(f"{name:>5} {ndcg:>7.4f} {p_value:>7.4f} {effect_size:>8.2f}{significance}")
+            print(f"{results_dir.name},{ndcg:.4f},{p_value:.4f},{effect_size:.2f}", flush=True)
 
 
 if __name__ == "__main__":
