@@ -1,5 +1,6 @@
 from pathlib import Path
 import bisect
+import sys
 from termcolor import colored
 import argparse
 import subprocess
@@ -14,18 +15,60 @@ import statistics
 NUM_PERMUTATIONS = 10000
 
 
-def getSortedSpecs(specs: list[Path], spec_dir: Path) -> list[tuple[float, str, str]]:
-    scores: list[tuple[float, str, str]] = []
-    for spec_path in specs:
-        spec_file = spec_dir / spec_path.name
-        with spec_file.open() as f:
-            contents = f.read()
-            syntactic_score = None
-            for line in contents.splitlines():
-                if line.startswith("//syntactic: "):
-                    syntactic_score = float(line.split()[1])
-            assert syntactic_score is not None, f"Missing syntactic score in {spec_path}"
-            bisect.insort(scores, (syntactic_score, spec_file.name, contents), key=lambda x: -x[0])
+def getSortedSpecs(original_spec_path: Path, repaired_specs_dir: Path) -> list[tuple[str, float, float]]:
+    classpath = ":".join([
+        "bin",
+        "lib/commons-math3-3.6.1.jar",
+        "lib/rltlconv.jar",
+        "lib/JFLAP-7.0_With_Source.jar",
+        "lib/owl-18.10-snapshot.jar",
+        "lib/ejml/ejml-core-0.34.jar",
+        "lib/ejml/ejml-cdense-0.34.jar",
+        "lib/ejml/ejml-ddense-0.34.jar",
+        "lib/ejml/ejml-fdense-0.34.jar",
+        "lib/ejml/ejml-simple-0.34.jar",
+        "lib/ejml/ejml-zdense-0.34.jar",
+        "lib/ejml/ejml-dsparse-0.34.jar",
+        "lib/ejml/ejml-experimental-0.34.jar",
+        "lib/ltl2buchi.jar"
+    ])
+    cmd = [
+        "java", "-Xmx8g", "-Djava.library.path=/usr/local/lib",
+        "-cp", classpath,
+        "main.SemanticSimilarity",
+        str(original_spec_path),
+        str(repaired_specs_dir)
+    ]
+    try:
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=3600,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"Error: SemanticSimilarity timed out for {repaired_specs_dir.name}", file=sys.stderr)
+        sys.exit(1)
+    if result.returncode != 0:
+        print("SemanticSimilarity failed (stderr was printed above).", file=sys.stderr)
+        sys.exit(1)
+    # Parse CSV output: filename,semantic_similarity,elapsed_time,progress
+    scores = []
+    for line in result.stdout.strip().split('\n'):
+        if line.strip():
+            parts = line.split(',')
+            if len(parts) >= 2:
+                try:
+                    print(parts)
+                    filename = parts[0]
+                    semantic_similarity = float(parts[1])
+                    time = float(parts[2])
+                    scores.append((filename, semantic_similarity, filename, time))
+                except (ValueError, IndexError):
+                    pass
+    # Sort by semantic similarity in descending order
+    scores.sort(key=lambda x: -x[1])
     return scores
 
 
@@ -55,15 +98,38 @@ def getGenuineStatistics(solutions_dir: Path, genuine_dir: Path) -> dict[str, se
         "-cp", classpath,
         "main.GenuineSolutionsMinimal"
     ] + references + [str(solutions_dir)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    # Parse JSON output
-    output = result.stdout.strip()
-    data = json.loads(output)
-    return {
-        "genuine": set(data.get("genuine_solutions", [])),
-        "weaker": set(data.get("weaker_solutions", [])),
-        "stronger": set(data.get("stronger_solutions", []))
-    }
+    try:
+        print(f"Running GenuineSolutionsMinimal for {solutions_dir.name}...", file=sys.stderr, flush=True)
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=3600,
+        )
+        if result.returncode != 0:
+            print(f"Warning: GenuineSolutionsMinimal failed with return code {result.returncode}", file=sys.stderr)
+            return {"genuine": set(), "weaker": set(), "stronger": set()}
+        # Parse JSON output
+        output = result.stdout.strip()
+        if not output:
+            print(f"Warning: GenuineSolutionsMinimal returned empty output", file=sys.stderr)
+            return {"genuine": set(), "weaker": set(), "stronger": set()}
+        data = json.loads(output)
+        return {
+            "genuine": set(data.get("genuine_solutions", [])),
+            "weaker": set(data.get("weaker_solutions", [])),
+            "stronger": set(data.get("stronger_solutions", []))
+        }
+    except subprocess.TimeoutExpired:
+        print(f"Error: GenuineSolutionsMinimal timed out for {solutions_dir.name}", file=sys.stderr)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to parse JSON output from GenuineSolutionsMinimal: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Unexpected error in getGenuineStatistics: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def computeNdcg(ranking: list[tuple[float, str, str]], stats: dict[str, set[str]]) -> float:
@@ -169,32 +235,7 @@ def printRanking(run_dir: Path, scores: list[tuple[float, str, str]], stats: dic
         rank += 1
 
 
-def processRunDirectory(run_dir: Path, genuine_dir: Path) -> tuple[str, float, float, float] | None:
-    """Process a single run directory and return (name, ndcg, p_value, effect_size) or None if directory is invalid."""
-    if not run_dir.is_dir():
-        return None
-    specs_file = run_dir / "maximal-specs.txt"
-    if not specs_file.exists():
-        return None
-    with specs_file.open() as f:
-        specs = [Path(line.strip()) for line in f if line.strip()]
-    # Get genuine statistics
-    stats = getGenuineStatistics(run_dir, genuine_dir)
-    if not stats["genuine"] and not stats["weaker"] and not stats["stronger"]:
-        print(f"Warning: No genuine/weaker/stronger solutions found for {run_dir.name}")
-        return None
-    # Get sorted specs
-    scores = getSortedSpecs(specs, run_dir)
-    # printRanking(run_dir, scores, stats)
-    # Compute NDCG
-    ndcg = computeNdcg(scores, stats)
-    # Compute p-value and effect size
-    p_value, effect_size, mean_random = compute_monte_carlo_pvalue(scores, stats)
-    print(f"NDCG: {ndcg:.4f} (p-value: {p_value:.4f}, effect size: {effect_size:.2f})")
-    return (run_dir.name, ndcg, p_value, effect_size)
-
-
-def processAggregateAll(run_dirs: list[Path], genuine_dir: Path) -> tuple[float, float, float] | None:
+def processAggregateAll(run_dirs: list[Path], genuine_dir: Path, original_spec: Path) -> tuple[float, float, float] | None:
     """Process all runs aggregated together and return (ndcg, p_value, effect_size)."""
     all_specs = []
     all_stats = {"genuine": set(), "weaker": set(), "stronger": set()}
@@ -207,14 +248,14 @@ def processAggregateAll(run_dirs: list[Path], genuine_dir: Path) -> tuple[float,
         with specs_file.open() as f:
             specs = [Path(line.strip()) for line in f if line.strip()]
         # Get genuine statistics for this run
-        stats = getGenuineStatistics(run_dir, genuine_dir)
-        all_stats["genuine"].update(stats["genuine"])
-        all_stats["weaker"].update(stats["weaker"])
-        all_stats["stronger"].update(stats["stronger"])
+        # stats = getGenuineStatistics(run_dir, genuine_dir)
+        # all_stats["genuine"].update(stats["genuine"])
+        # all_stats["weaker"].update(stats["weaker"])
+        # all_stats["stronger"].update(stats["stronger"])
         # Get sorted specs for this run
-        scores = getSortedSpecs(specs, run_dir)
-        all_scores.extend(scores)
-        all_specs.extend(specs)
+        scores = getSortedSpecs(original_spec, run_dir)
+        # all_scores.extend(scores)
+        # all_specs.extend(specs)
     if not all_specs:
         # print("Warning: No specs found in any run")
         return None
@@ -224,26 +265,17 @@ def processAggregateAll(run_dirs: list[Path], genuine_dir: Path) -> tuple[float,
     return (ndcg, p_value, effect_size)
 
 
-def main():
-    global NUM_PERMUTATIONS
-    ap = argparse.ArgumentParser(description="Rank runs and compute NDCG with Monte Carlo p-values")
-    # ap.add_argument("results_dir", help="Directory containing run subdirectories with maximal-specs.txt")
-    # ap.add_argument("--genuine-dir", help="Directory containing genuine solutions", required=True)
-    ap.add_argument("--workers", type=int, default=4, help="Number of parallel workers")
-    ap.add_argument("--permutations", type=int, default=NUM_PERMUTATIONS, help="Number of random permutations for Monte Carlo test")
-    ap.add_argument("--aggregate-all", action="store_true", help="Aggregate all specs from all runs for single NDCG computation")
-    args = ap.parse_args()
-    NUM_PERMUTATIONS = args.permutations
+def get_inputs() -> tuple[list[Path], list[Path], list[Path]]:
     results_dirs = [
         # Path("result/lily02"),
         # Path("result/minepump"),
         # Path("result/Lift"),
-        # Path("result/arbiter"),
+        Path("result/arbiter"),
         # Path("result/RG1"),
         # Path("result/RG2"),
         # Path("result/gyro_var1"),
         # Path("result/gyro_var2"),
-        Path("result/HumanoidLTL_531_Humanoid_unrealizable"),
+        # Path("result/HumanoidLTL_531_Humanoid_unrealizable"),
     ]
     for d in results_dirs:
         if not d.is_dir():
@@ -253,22 +285,48 @@ def main():
         # Path("case-studies/lily02/genuine"),
         # Path("case-studies/minepump/genuine"),
         # Path("case-studies/lift/genuine"),
-        # Path("case-studies/arbiter/genuine"),
+        Path("case-studies/arbiter/genuine"),
         # Path("case-studies/RG1/genuine"),
         # Path("case-studies/RG2/genuine"),
         # Path("case-studies/GyroUnrealizable_Var1/genuine"),
         # Path("case-studies/GyroUnrealizable_Var2/genuine"),
-        Path("case-studies/HumanoidLTL_531/genuine")
+        # Path("case-studies/HumanoidLTL_531/genuine")
     ]
     for d in genuine_dirs:
         if not d.is_dir():
             print(f"Error: Genuine directory {d} does not exist or is not a directory")
             return
+    original_specs = [
+        # Path("case-studies/lily02/lily02.tlsf"),
+        # Path("case-studies/minepump/minepump.tlsf"),
+        # Path("case-studies/lift/Lift.tlsf"),
+        Path("case-studies/arbiter/arbiter.tlsf"),
+        # Path("case-studies/RG1/RG1.tlsf"),
+        # Path("case-studies/RG2/RG2.tlsf"),
+        # Path("case-studies/GyroUnrealizable_Var1/original.tlsf"),
+        # Path("case-studies/GyroUnrealizable_Var2/original.tlsf"),
+        # Path("case-studies/HumanoidLTL_531/original.tlsf")
+    ]
+    for d in original_specs:
+        if not d.is_file():
+            print(f"Error: Original spec file {d} does not exist or is not a file")
+            return
+    return results_dirs, genuine_dirs, original_specs
+
+
+def main():
+    global NUM_PERMUTATIONS
+    ap = argparse.ArgumentParser(description="Rank runs and compute NDCG with Monte Carlo p-values")
+    ap.add_argument("--workers", type=int, default=4, help="Number of parallel workers")
+    ap.add_argument("--permutations", type=int, default=NUM_PERMUTATIONS, help="Number of random permutations for Monte Carlo test")
+    args = ap.parse_args()
+    NUM_PERMUTATIONS = args.permutations
+    results_dirs, genuine_dirs, original_specs = get_inputs()
     # print("case-study,ndcg,p-value,effect-size", flush=True)
-    for results_dir, genuine_dir in zip(results_dirs, genuine_dirs):
+    for results_dir, genuine_dir, original_spec in zip(results_dirs, genuine_dirs, original_specs):
         # Collect all run directories
         run_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir()])
-        result = processAggregateAll(run_dirs, genuine_dir)
+        result = processAggregateAll(run_dirs, genuine_dir, original_spec)
         if result:
             ndcg, p_value, effect_size = result
             print(f"{results_dir.name},{ndcg:.4f},{p_value:.4f},{effect_size:.2f}", flush=True)
