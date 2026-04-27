@@ -4,6 +4,7 @@ import geneticalgorithm.SpecificationChromosome;
 import geneticalgorithm.SpecificationGeneticAlgorithm;
 import owl.ltl.tlsf.Tlsf;
 import utils.TlsfUtils;
+import solvers.StrixHelper;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -188,6 +189,7 @@ public class Main {
         System.out.println("Num. of Solutions:" + solutions.size() + "\n");
         System.out.printf("Best fitness: %.2f\n%n", bestFitness);
         System.out.printf("AVG fitness: %.2f\n%n", (!ga.solutions.isEmpty()) ? (sumFitness / (double) ga.solutions.size()) : 0);
+        System.out.printf("Num. of Strix invocations: %d\n%n", StrixHelper.n_invocations);
 
         //saving the time execution and configuration details
         File file = new File(directoryName + "/out.txt");

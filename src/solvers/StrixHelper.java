@@ -14,12 +14,15 @@ import java.util.concurrent.TimeUnit;
 
 public class StrixHelper {
 
+    public static int n_invocations = 0;
+
     public static RealizabilitySolverResult checkRealizability(String tlsf) throws IOException, InterruptedException {
         Tlsf tlsf2 = TlsfUtils.toBasicTLSF(tlsf);
         return checkRealizability(tlsf2);
     }
 
     public static RealizabilitySolverResult checkRealizability(Tlsf tlsf) throws IOException, InterruptedException {
+        n_invocations++;
         File file;
         if (Settings.USE_SPECTRA) {
             String directoryName = Settings.SPECTRA_PATH;

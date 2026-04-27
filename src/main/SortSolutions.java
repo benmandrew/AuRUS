@@ -78,7 +78,7 @@ public class SortSolutions {
         System.out.println("Parsing " + specifications_filenames.size() + " TLSF specifications...");
         List<Tlsf> specifications = parseTlsfFiles(specifications_filenames);
         System.out.println("Finding the maximal solutions...");
-        List<Integer> maximalElements = MaximalSolutions.getMaximalElements(specifications);
+        List<Integer> maximalElements = MaximalSolutions.getMaximalElements(specifications, Optional.empty());
         List<String> maximalSpecs = new ArrayList<>(maximalElements.size());
         for (int i = 0; i < maximalElements.size(); i++) {
             String path = Paths.get(specifications_filenames.get(maximalElements.get(i))).toAbsolutePath().toString();

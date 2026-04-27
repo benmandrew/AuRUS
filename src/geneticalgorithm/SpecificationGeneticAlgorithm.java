@@ -16,9 +16,14 @@ import utils.TlsfUtils;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import utils.MaximalSolutions;
 
 public class SpecificationGeneticAlgorithm {
     public Instant initialExecutionTime = null;
@@ -312,6 +317,24 @@ public class SpecificationGeneticAlgorithm {
             // Listener prints best achieved solution
             System.out.println();
             System.out.printf("%s\t%.2f\t%s\t%s\t%s%n", iteration, bestFit, best, ga1.getNumberOfVisitedIndividuals(), (Settings.check_REALIZABILITY && !Settings.check_STRONG_SAT) ? solutions.size() : bestSolutions.size());
+
+            // Filter population to maximal elements
+            try {
+                Population<SpecificationChromosome> pop = ga1.getPopulation();
+                List<SpecificationChromosome> chromosomes = new ArrayList<>(pop.asList());
+                List<Tlsf> specs = new ArrayList<>(chromosomes.size());
+                for (SpecificationChromosome c : chromosomes) {
+                    specs.add(c.spec);
+                }
+                List<Integer> maximalIndices = MaximalSolutions.getMaximalElements(specs, Optional.of(4));
+                Set<SpecificationChromosome> maximalSet = Collections.newSetFromMap(new IdentityHashMap<>());
+                for (int idx : maximalIndices) {
+                    maximalSet.add(chromosomes.get(idx));
+                }
+                pop.filter(maximalSet::contains);
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
         });
     }
 

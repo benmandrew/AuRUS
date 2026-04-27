@@ -40,10 +40,11 @@ public class MaximalSolutions {
 
     private static void runParallelComparisons(int size, List<String> formulae, int totalComparisons,
                                         AtomicInteger skippedComparisons, AtomicInteger performedComparisons,
-                                        ComparisonTask task) throws IOException, InterruptedException {
-        int parallelism = Runtime.getRuntime().availableProcessors();
-        System.out.println("Using parallelism: " + parallelism);
-        ExecutorService executor = Executors.newWorkStealingPool(parallelism);
+                                        ComparisonTask task, Optional<Integer> parallelism) throws IOException, InterruptedException {
+        // int parallelism = Runtime.getRuntime().availableProcessors();
+        // System.out.println("Using parallelism: " + parallelism);
+        int actualParallelism = parallelism.orElse(Runtime.getRuntime().availableProcessors());
+        ExecutorService executor = Executors.newWorkStealingPool(actualParallelism);
         CompletionService<Void> completionService = new ExecutorCompletionService<>(executor);
         List<int[]> comparisonPairs = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -107,7 +108,7 @@ public class MaximalSolutions {
         return formatDuration(elapsed);
     }
 
-    public static List<Integer> getMaximalElements(List<Tlsf> specs) throws IOException, InterruptedException {
+    public static List<Integer> getMaximalElements(List<Tlsf> specs, Optional<Integer> parallelism) throws IOException, InterruptedException {
         List<String> formulae = getFormulae(specs);
         int totalComparisons = specs.size() * (specs.size() - 1);
         AtomicInteger skippedComparisons = new AtomicInteger(0);
@@ -126,21 +127,29 @@ public class MaximalSolutions {
                 subsumed[to].set(true);
             }
             performedComparisons.incrementAndGet();
-        });
-        int performed = performedComparisons.get();
-        int skipped = skippedComparisons.get();
-        double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
-        System.out.println("Total comparisons: performed=" + performed +
-                 ", skipped=" + skipped +
-                 ", reduction=" + String.format("%.1f", reductionPct) + "%");
+        }, parallelism);
+        // int performed = performedComparisons.get();
+        // int skipped = skippedComparisons.get();
+        // double reductionPct = (totalComparisons == 0) ? 0.0 : (100.0 * skipped / (double) totalComparisons);
+        // System.out.println("Total comparisons: performed=" + performed +
+        //          ", skipped=" + skipped +
+        //          ", reduction=" + String.format("%.1f", reductionPct) + "%");
         List<Integer> maximalIndices = new ArrayList<>();
         for (int i = 0; i < specs.size(); i++) {
             if (!subsumed[i].get()) {
                 maximalIndices.add(i);
             }
         }
-        System.out.println("Maximal elements: " + maximalIndices.size() + " out of " + specs.size() +
-                         " (removed: " + (specs.size() - maximalIndices.size()) + ")");
+        // If all specs were marked subsumed, equivalent specs caused a race where both
+        // directions of implication completed before either result was visible. In that
+        // case no spec is strictly dominated, so keep all of them.
+        if (maximalIndices.isEmpty()) {
+            for (int i = 0; i < specs.size(); i++) {
+                maximalIndices.add(i);
+            }
+        }
+        // System.out.println("Maximal elements: " + maximalIndices.size() + " out of " + specs.size() +
+        //                  " (removed: " + (specs.size() - maximalIndices.size()) + ")");
         return maximalIndices;
     }
 }
